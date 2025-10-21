@@ -228,10 +228,10 @@ class MainWindow:
         result_buttons_frame = tk.Frame(self.result_frame, bg='#f8f9fa')
         result_buttons_frame.pack(fill=tk.X, pady=(10, 0))
         
-        # Copy button
+        # Select button
         copy_btn = tk.Button(
             result_buttons_frame, 
-            text="📋 Copiar", 
+            text="📋 Selecionar", 
             command=self.copy_result,
             bg='#28a745', 
             fg='white', 
@@ -281,19 +281,16 @@ class MainWindow:
         
         self.result_text.bind("<Control-a>", select_all_result_ctrl_a)
         
-        # Add Ctrl+C support for easy copying
+        # Add Ctrl+C support for easy copying (simplified)
         def copy_result_text(event):
             try:
-                # Get selected text or all text
-                selected_text = self.result_text.get(tk.SEL_FIRST, tk.SEL_LAST) if self.result_text.tag_ranges(tk.SEL) else self.result_text.get("1.0", tk.END).strip()
-                if selected_text:
-                    # Copy to system clipboard using tkinter's built-in method
-                    self.result_text.clipboard_clear()
-                    self.result_text.clipboard_append(selected_text)
-                    self.result_text.update()
-            except:
-                pass
-            return 'break'
+                # Let tkinter handle the copy operation naturally
+                # Just update status to show it worked
+                if hasattr(self, 'status_text'):
+                    self.status_text.config(text="Status: Texto copiado!", fg='#28a745')
+            except Exception as e:
+                self.logger.error(f"Error in Ctrl+C copy: {e}")
+            # Don't return 'break' to allow normal copy behavior
         
         self.result_text.bind("<Control-c>", copy_result_text)
     
@@ -313,14 +310,14 @@ class MainWindow:
         status_indicator.pack(side=tk.LEFT, padx=(0, 10))
         
         # Status text
-        status_text = tk.Label(
+        self.status_text = tk.Label(
             status_frame, 
             text="Status: Pronto para usar", 
             font=("Arial", 10), 
             bg='#f8f9fa',
             fg='#28a745'
         )
-        status_text.pack(side=tk.LEFT)
+        self.status_text.pack(side=tk.LEFT)
     
     def _darken_color(self, color: str) -> str:
         """Darken a hex color for hover effect"""
@@ -361,9 +358,12 @@ class MainWindow:
     
     def update_status(self, message: str, color: str = '#28a745'):
         """Update status message"""
-        # This would require storing references to status elements
-        # For now, just log the status update
-        self.logger.info(f"Status update: {message}")
+        try:
+            if hasattr(self, 'status_text'):
+                self.status_text.config(text=f"Status: {message}", fg=color)
+            self.logger.info(f"Status update: {message}")
+        except Exception as e:
+            self.logger.error(f"Error updating status: {e}")
     
     def show_error(self, title: str, message: str):
         """Show error message"""
@@ -383,21 +383,28 @@ class MainWindow:
         self.logger.info("Result text updated")
     
     def copy_result(self):
-        """Copy result to clipboard"""
+        """Select all text for easy copying"""
         try:
             text = self.result_text.get("1.0", tk.END).strip()
             if text:
-                # Use tkinter's built-in clipboard method
-                self.result_text.clipboard_clear()
-                self.result_text.clipboard_append(text)
-                self.result_text.update()
-                messagebox.showinfo("Copiado!", "Texto copiado para a área de transferência!")
-                self.logger.info("Result text copied to clipboard")
+                # Select all text instead of copying to clipboard
+                self.result_text.tag_add(tk.SEL, "1.0", tk.END)
+                self.result_text.mark_set(tk.INSERT, "1.0")
+                self.result_text.see(tk.INSERT)
+                
+                # Update status
+                if hasattr(self, 'status_text'):
+                    self.status_text.config(text="Status: Texto selecionado! Pressione Ctrl+C para copiar", fg='#28a745')
+                
+                self.logger.info("Result text selected for copying")
             else:
-                messagebox.showwarning("Aviso", "Nenhum resultado para copiar!")
+                if hasattr(self, 'status_text'):
+                    self.status_text.config(text="Status: Nenhum resultado para copiar!", fg='#ffc107')
+                self.logger.warning("No result text to copy")
         except Exception as e:
-            messagebox.showerror("Erro", f"Erro ao copiar texto: {e}")
-            self.logger.error(f"Error copying result text: {e}")
+            if hasattr(self, 'status_text'):
+                self.status_text.config(text=f"Status: Erro ao selecionar texto: {e}", fg='#dc3545')
+            self.logger.error(f"Error selecting result text: {e}")
     
     def clear_result(self):
         """Clear result text"""

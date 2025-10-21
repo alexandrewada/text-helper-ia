@@ -29,16 +29,10 @@ class Config:
             'model': 'gpt-3.5-turbo',
             'max_tokens': '300',
             'temperature': '0.3',
-            'timeout': '30',
-            'auto_copy': 'true',
-            'auto_replace_selected': 'true',
-            'show_notifications': 'true',
-            'theme': 'light'
+            'timeout': '30'
         }
         
         self.config['UI'] = {
-            'window_width': '600',
-            'window_height': '500',
             'auto_close_delay': '10'
         }
         
@@ -77,13 +71,7 @@ class Config:
     def get_ui_config(self) -> Dict[str, Any]:
         """Get UI configuration"""
         return {
-            'window_width': int(self.get('UI', 'window_width', '600')),
-            'window_height': int(self.get('UI', 'window_height', '500')),
-            'auto_close_delay': int(self.get('UI', 'auto_close_delay', '10')),
-            'auto_copy': self.get('DEFAULT', 'auto_copy', 'true').lower() == 'true',
-            'auto_replace_selected': self.get('DEFAULT', 'auto_replace_selected', 'true').lower() == 'true',
-            'show_notifications': self.get('DEFAULT', 'show_notifications', 'true').lower() == 'true',
-            'theme': self.get('DEFAULT', 'theme', 'light')
+            'auto_close_delay': int(self.get('UI', 'auto_close_delay', '10'))
         }
     
     def get_logging_config(self) -> Dict[str, Any]:

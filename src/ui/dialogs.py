@@ -711,32 +711,11 @@ class ConfigDialog:
     
     def _setup_ui_tab(self, parent):
         """Setup UI configuration tab"""
-        # Auto copy
-        self.auto_copy_var = tk.BooleanVar(value=self.config.get('DEFAULT', 'auto_copy', 'true').lower() == 'true')
-        auto_copy_check = tk.Checkbutton(parent, text="Copiar automaticamente o resultado", variable=self.auto_copy_var, bg='#f8f9fa', font=("Arial", 10))
-        auto_copy_check.pack(anchor=tk.W, pady=(10, 5))
-        
-        # Auto replace selected text
-        self.auto_replace_var = tk.BooleanVar(value=self.config.get('DEFAULT', 'auto_replace_selected', 'true').lower() == 'true')
-        auto_replace_check = tk.Checkbutton(parent, text="Substituir texto selecionado automaticamente", variable=self.auto_replace_var, bg='#f8f9fa', font=("Arial", 10))
-        auto_replace_check.pack(anchor=tk.W, pady=(10, 5))
-        
-        # Show notifications
-        self.show_notifications_var = tk.BooleanVar(value=self.config.get('DEFAULT', 'show_notifications', 'true').lower() == 'true')
-        notifications_check = tk.Checkbutton(parent, text="Mostrar notificações", variable=self.show_notifications_var, bg='#f8f9fa', font=("Arial", 10))
-        notifications_check.pack(anchor=tk.W, pady=(10, 5))
-        
         # Auto close delay
         tk.Label(parent, text="Fechar diálogo automaticamente após (segundos):", font=("Arial", 10, "bold"), bg='#f8f9fa').pack(anchor=tk.W, pady=(10, 5))
         self.auto_close_var = tk.StringVar(value=self.config.get('UI', 'auto_close_delay', '10'))
         auto_close_entry = tk.Entry(parent, textvariable=self.auto_close_var, width=10, font=("Arial", 10))
         auto_close_entry.pack(anchor=tk.W, pady=(0, 10))
-        
-        # Theme selection
-        tk.Label(parent, text="Tema:", font=("Arial", 10, "bold"), bg='#f8f9fa').pack(anchor=tk.W, pady=(10, 5))
-        self.theme_var = tk.StringVar(value=self.config.get('DEFAULT', 'theme', 'light'))
-        theme_combo = ttk.Combobox(parent, textvariable=self.theme_var, values=['light', 'dark'], width=57)
-        theme_combo.pack(fill=tk.X, pady=(0, 10))
     
     def save_config(self):
         """Save configuration"""
@@ -757,10 +736,6 @@ class ConfigDialog:
             self.config.set('DEFAULT', 'max_tokens', self.tokens_var.get())
             self.config.set('DEFAULT', 'temperature', self.temperature_var.get())
             self.config.set('DEFAULT', 'timeout', self.timeout_var.get())
-            self.config.set('DEFAULT', 'auto_copy', str(self.auto_copy_var.get()).lower())
-            self.config.set('DEFAULT', 'auto_replace_selected', str(self.auto_replace_var.get()).lower())
-            self.config.set('DEFAULT', 'show_notifications', str(self.show_notifications_var.get()).lower())
-            self.config.set('DEFAULT', 'theme', self.theme_var.get())
             self.config.set('UI', 'auto_close_delay', self.auto_close_var.get())
             
             self.config.save_config()

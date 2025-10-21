@@ -69,17 +69,10 @@ class TestConfig(unittest.TestCase):
         """Test UI configuration retrieval"""
         ui_config = self.config.get_ui_config()
         
-        self.assertIn('window_width', ui_config)
-        self.assertIn('window_height', ui_config)
-        self.assertIn('auto_copy', ui_config)
-        self.assertIn('show_notifications', ui_config)
-        self.assertIn('theme', ui_config)
+        self.assertIn('auto_close_delay', ui_config)
         
         # Check types
-        self.assertIsInstance(ui_config['window_width'], int)
-        self.assertIsInstance(ui_config['window_height'], int)
-        self.assertIsInstance(ui_config['auto_copy'], bool)
-        self.assertIsInstance(ui_config['show_notifications'], bool)
+        self.assertIsInstance(ui_config['auto_close_delay'], int)
     
     def test_get_logging_config(self):
         """Test logging configuration retrieval"""

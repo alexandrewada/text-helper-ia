@@ -93,7 +93,7 @@ class TextHelperAI:
             parent_window = tk.Tk()
             parent_window.withdraw()
         
-        # Create simple input dialog with auto-paste
+        # Create simple input dialog with auto-paste (more stable)
         selected_text = self._show_simple_input_dialog(parent_window)
         
         self.logger.info(f"Text received from dialog: '{selected_text[:100] if selected_text else 'None'}{'...' if selected_text and len(selected_text) > 100 else ''}'")
@@ -202,19 +202,25 @@ class TextHelperAI:
         # Create dialog window
         dialog = tk.Toplevel(parent)
         dialog.title("Texto para Processar")
-        dialog.geometry("500x300")
+        dialog.geometry("600x400")
         dialog.resizable(True, True)
         dialog.transient(parent)
-        dialog.grab_set()
         
-        # Center the dialog
+        # Ensure parent window is not withdrawn when creating dialog
+        if hasattr(parent, 'deiconify'):
+            parent.deiconify()
+        
+        # Center the dialog first
         dialog.update_idletasks()
-        x = (dialog.winfo_screenwidth() // 2) - (500 // 2)
-        y = (dialog.winfo_screenheight() // 2) - (300 // 2)
-        dialog.geometry(f"500x300+{x}+{y}")
+        x = (dialog.winfo_screenwidth() // 2) - (600 // 2)
+        y = (dialog.winfo_screenheight() // 2) - (400 // 2)
+        dialog.geometry(f"600x400+{x}+{y}")
         
         # Make it always on top
         dialog.attributes('-topmost', True)
+        
+        # Set grab after positioning
+        dialog.grab_set()
         
         # Main frame
         main_frame = tk.Frame(dialog, bg='#f8f9fa')
@@ -236,7 +242,7 @@ class TextHelperAI:
         
         text_widget = tk.Text(
             text_frame, 
-            height=10, 
+            height=15, 
             wrap=tk.WORD, 
             bg='#ffffff', 
             relief=tk.SUNKEN, 
@@ -284,6 +290,22 @@ class TextHelperAI:
         )
         paste_btn.pack(side=tk.LEFT, padx=(0, 10))
         
+        # Clear button
+        clear_btn = tk.Button(
+            buttons_frame, 
+            text="🗑️ Limpar", 
+            command=lambda: self._clear_text_widget(text_widget),
+            bg='#6c757d', 
+            fg='white', 
+            font=("Arial", 10, "bold"),
+            relief=tk.FLAT, 
+            bd=0,
+            padx=15,
+            pady=8,
+            cursor='hand2'
+        )
+        clear_btn.pack(side=tk.LEFT, padx=(0, 10))
+        
         # OK button
         ok_btn = tk.Button(
             buttons_frame, 
@@ -325,6 +347,12 @@ class TextHelperAI:
         # Handle window close event
         def on_closing():
             self._dialog_result = None
+            # Ensure proper cleanup to prevent dialog freeze
+            try:
+                dialog.grab_release()  # Release the grab before destroying
+                dialog.attributes('-topmost', False)  # Remove topmost attribute
+            except:
+                pass  # Ignore errors during cleanup
             dialog.destroy()
         
         dialog.protocol("WM_DELETE_WINDOW", on_closing)
@@ -332,44 +360,162 @@ class TextHelperAI:
         # Store result
         self._dialog_result = None
         
-        # Wait for dialog to close
-        dialog.wait_window()
+        # Wait for dialog to close with proper error handling
+        try:
+            dialog.wait_window()
+        except Exception as e:
+            self.logger.error(f"Error waiting for dialog: {e}")
+            # Force cleanup if wait_window fails
+            try:
+                dialog.grab_release()
+                dialog.attributes('-topmost', False)
+                dialog.destroy()
+            except:
+                pass
         
         return self._dialog_result
     
     def _show_simple_input_dialog(self, parent):
-        """Show simple input dialog with auto-paste functionality"""
+        """Show improved simple input dialog with auto-paste functionality"""
         import tkinter as tk
         from tkinter import simpledialog
         
-        # Try to get clipboard content first
-        clipboard_text = ""
+        # Create a custom dialog that's more stable than the complex one
+        dialog = tk.Toplevel(parent)
+        dialog.title("Texto para Processar")
+        dialog.geometry("500x350")
+        dialog.resizable(True, True)
+        dialog.transient(parent)
+        
+        # Center the dialog
+        dialog.update_idletasks()
+        x = (dialog.winfo_screenwidth() // 2) - (500 // 2)
+        y = (dialog.winfo_screenheight() // 2) - (350 // 2)
+        dialog.geometry(f"500x350+{x}+{y}")
+        
+        # Make it always on top
+        dialog.attributes('-topmost', True)
+        
+        # Main frame
+        main_frame = tk.Frame(dialog, bg='#f8f9fa')
+        main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        
+        # Title
+        title_label = tk.Label(
+            main_frame, 
+            text="📝 Digite ou cole o texto que deseja processar:", 
+            font=("Arial", 12, "bold"), 
+            bg='#f8f9fa',
+            fg='#343a40'
+        )
+        title_label.pack(anchor=tk.W, pady=(0, 10))
+        
+        # Text widget with scrollbar
+        text_frame = tk.Frame(main_frame, bg='#f8f9fa')
+        text_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 15))
+        
+        text_widget = tk.Text(
+            text_frame, 
+            height=12, 
+            wrap=tk.WORD, 
+            bg='#ffffff', 
+            relief=tk.SUNKEN, 
+            bd=1,
+            font=("Arial", 10),
+            padx=10,
+            pady=10
+        )
+        scrollbar = tk.Scrollbar(text_frame, orient="vertical", command=text_widget.yview)
+        text_widget.configure(yscrollcommand=scrollbar.set)
+        
+        text_widget.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        # Auto-paste clipboard content
         try:
             import pyperclip
-            clipboard_text = pyperclip.paste()
-            if clipboard_text:
-                clipboard_text = clipboard_text.strip()
-                self.logger.info(f"Clipboard content found: '{clipboard_text[:50]}{'...' if len(clipboard_text) > 50 else ''}'")
+            clipboard_content = pyperclip.paste()
+            if clipboard_content and clipboard_content.strip():
+                text_widget.insert(tk.END, clipboard_content.strip())
+                self.logger.info("Auto-pasted clipboard content")
         except Exception as e:
-            self.logger.warning(f"Could not get clipboard content: {e}")
+            self.logger.warning(f"Could not auto-paste clipboard: {e}")
         
-        # Use simpledialog with clipboard content as initial value
-        if clipboard_text:
-            result = simpledialog.askstring(
-                "Texto para Processar", 
-                f"Texto do clipboard detectado. Edite se necessário:",
-                initialvalue=clipboard_text,
-                parent=parent
-            )
-        else:
-            result = simpledialog.askstring(
-                "Texto para Processar", 
-                "Digite ou cole o texto que deseja processar:",
-                parent=parent
-            )
+        # Focus on text widget
+        text_widget.focus_set()
         
-        self.logger.info(f"Simple dialog result: '{result[:50] if result else 'None'}{'...' if result and len(result) > 50 else ''}'")
-        return result
+        # Buttons frame
+        buttons_frame = tk.Frame(main_frame, bg='#f8f9fa')
+        buttons_frame.pack(fill=tk.X)
+        
+        # Clear button
+        clear_btn = tk.Button(
+            buttons_frame, 
+            text="🗑️ Limpar", 
+            command=lambda: self._clear_text_widget(text_widget),
+            bg='#6c757d', 
+            fg='white', 
+            font=("Arial", 10, "bold"),
+            relief=tk.FLAT, 
+            bd=0,
+            padx=15,
+            pady=8,
+            cursor='hand2'
+        )
+        clear_btn.pack(side=tk.LEFT, padx=(0, 10))
+        
+        # OK button
+        ok_btn = tk.Button(
+            buttons_frame, 
+            text="✅ Processar", 
+            command=lambda: self._close_simple_dialog(dialog, text_widget),
+            bg='#28a745', 
+            fg='white', 
+            font=("Arial", 10, "bold"),
+            relief=tk.FLAT, 
+            bd=0,
+            padx=20,
+            pady=8,
+            cursor='hand2'
+        )
+        ok_btn.pack(side=tk.RIGHT, padx=(10, 0))
+        
+        # Cancel button
+        cancel_btn = tk.Button(
+            buttons_frame, 
+            text="❌ Cancelar", 
+            command=lambda: self._close_simple_dialog(dialog, None),
+            bg='#dc3545', 
+            fg='white', 
+            font=("Arial", 10, "bold"),
+            relief=tk.FLAT, 
+            bd=0,
+            padx=15,
+            pady=8,
+            cursor='hand2'
+        )
+        cancel_btn.pack(side=tk.RIGHT)
+        
+        # Bind Enter key to OK
+        def on_enter(event):
+            self._close_simple_dialog(dialog, text_widget)
+        
+        text_widget.bind("<Control-Return>", on_enter)
+        
+        # Handle window close event
+        def on_closing():
+            self._simple_dialog_result = None
+            dialog.destroy()
+        
+        dialog.protocol("WM_DELETE_WINDOW", on_closing)
+        
+        # Store result
+        self._simple_dialog_result = None
+        
+        # Wait for dialog to close
+        dialog.wait_window()
+        
+        return self._simple_dialog_result
     
     def _paste_clipboard(self, text_widget):
         """Paste clipboard content into text widget"""
@@ -383,6 +529,33 @@ class TextHelperAI:
                 self.logger.info("Manually pasted clipboard content")
         except Exception as e:
             self.logger.error(f"Error pasting clipboard: {e}")
+    
+    def _clear_text_widget(self, text_widget):
+        """Clear text widget content"""
+        try:
+            import tkinter as tk
+            text_widget.delete("1.0", tk.END)
+            text_widget.focus_set()
+            self.logger.info("Text widget cleared")
+        except Exception as e:
+            self.logger.error(f"Error clearing text widget: {e}")
+    
+    def _close_simple_dialog(self, dialog, text_widget):
+        """Close simple dialog and return result"""
+        try:
+            if text_widget:
+                # Get all text content
+                content = text_widget.get("1.0", "end-1c")
+                self._simple_dialog_result = content.strip() if content else None
+                self.logger.info(f"Simple dialog result: '{self._simple_dialog_result[:50]}{'...' if len(self._simple_dialog_result) > 50 else ''}'")
+            else:
+                self._simple_dialog_result = None
+                self.logger.info("Simple dialog cancelled")
+        except Exception as e:
+            self.logger.error(f"Error getting text from simple dialog: {e}")
+            self._simple_dialog_result = None
+        finally:
+            dialog.destroy()
     
     def _close_dialog(self, dialog, text_widget):
         """Close dialog and return result"""
@@ -399,6 +572,12 @@ class TextHelperAI:
             self.logger.error(f"Error getting text from dialog: {e}")
             self._dialog_result = None
         finally:
+            # Ensure proper cleanup to prevent dialog freeze
+            try:
+                dialog.grab_release()  # Release the grab before destroying
+                dialog.attributes('-topmost', False)  # Remove topmost attribute
+            except:
+                pass  # Ignore errors during cleanup
             dialog.destroy()
     
     def run(self, show_config: bool = False):
