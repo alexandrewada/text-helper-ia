@@ -4,6 +4,7 @@ Main Application for Text Helper IA
 import sys
 import threading
 import asyncio
+import tkinter as tk
 from typing import Optional
 from .config import Config
 from .logger import Logger
@@ -60,8 +61,11 @@ class TextHelperAI:
             on_show_config=self.show_config_dialog
         )
         
+        # No global event handling needed - let system handle CTRL+C naturally
+        
         self.logger.info("Main window created")
         self.main_window.show()
+    
     
     
     def process_text_from_clipboard(self, operation_type: str = 'shorten'):
@@ -133,6 +137,9 @@ class TextHelperAI:
             parent_window = tk.Tk()
             parent_window.withdraw()
         
+        # Store reference to root window for thread-safe UI updates
+        root_window = parent_window
+        
         # Show loading dialog
         source_text = "selecionado" if text_source == "selecionado" else "da área de transferência"
         loading_dialog = LoadingDialog(parent_window, f"Processando texto {source_text}...", self.logger)
@@ -144,14 +151,22 @@ class TextHelperAI:
                 self.is_processing = True
                 self.logger.info(f"Processing text with operation: {operation_type}")
                 
-                # Update loading status
-                loading_dialog.update_status("Conectando com IA...")
+                # Update loading status (thread-safe)
+                def update_loading_status(message):
+                    try:
+                        if not loading_dialog._is_closed:
+                            loading_dialog.update_status(message)
+                    except Exception as e:
+                        self.logger.warning(f"Could not update loading status: {e}")
+                
+                # Schedule UI updates on main thread
+                root_window.after(0, lambda: update_loading_status("Conectando com IA..."))
                 
                 # Process the text
-                loading_dialog.update_status("Processando com IA...")
+                root_window.after(0, lambda: update_loading_status("Processando com IA..."))
                 processed_text = self.ai_client.process_text(cleaned_text, operation_type)
                 
-                loading_dialog.update_status("Finalizando...")
+                root_window.after(0, lambda: update_loading_status("Finalizando..."))
                 
                 # Handle result - show in dialog only (no clipboard operations to prevent freezing)
                 ui_config = self.config.get_ui_config()
@@ -159,16 +174,26 @@ class TextHelperAI:
                 # No clipboard operations to prevent system freezing
                 self.logger.info("Text processed successfully (no clipboard operations to prevent freezing)")
                 
-                # Close loading dialog
-                loading_dialog.close()
+                # Close loading dialog (thread-safe)
+                def close_loading_safe():
+                    try:
+                        if not loading_dialog._is_closed:
+                            loading_dialog.close()
+                    except Exception as e:
+                        self.logger.warning(f"Could not close loading dialog: {e}")
                 
-                # Set result in main window
-                if self.main_window:
-                    self.main_window.set_result(processed_text)
-                    self.main_window.show_info(
-                        "Processamento Concluído", 
-                        f"Texto {operation_type} processado com sucesso!"
-                    )
+                root_window.after(0, close_loading_safe)
+                
+                # Show result in system notification (thread-safe)
+                def show_notification_safe():
+                    try:
+                        if self.main_window:
+                            self.main_window.set_result(processed_text)
+                            self._show_result_notification(processed_text, operation_type)
+                    except Exception as e:
+                        self.logger.error(f"Error showing notification: {e}")
+                
+                root_window.after(0, show_notification_safe)
                 
                 # Reset processing status
                 self.is_processing = False
@@ -177,13 +202,28 @@ class TextHelperAI:
                 
             except Exception as e:
                 self.logger.error(f"Error processing text: {e}")
-                loading_dialog.close()
+                
+                # Close loading dialog (thread-safe)
+                def close_loading_on_error():
+                    try:
+                        if not loading_dialog._is_closed:
+                            loading_dialog.close()
+                    except Exception as e:
+                        self.logger.warning(f"Could not close loading dialog on error: {e}")
+                
+                root_window.after(0, close_loading_on_error)
                 
                 # Reset processing status
                 self.is_processing = False
                 
-                # Show error dialog
-                error_dialog = ErrorDialog(parent_window, str(e), self.logger)
+                # Show error dialog (thread-safe)
+                def show_error_safe():
+                    try:
+                        error_dialog = ErrorDialog(parent_window, str(e), self.logger)
+                    except Exception as e2:
+                        self.logger.error(f"Error showing error dialog: {e2}")
+                
+                root_window.after(0, show_error_safe)
         
         # Start processing in thread with proper cleanup
         thread = threading.Thread(target=process_in_thread, name=f"TextProcessor-{operation_type}")
@@ -219,8 +259,8 @@ class TextHelperAI:
         # Make it always on top
         dialog.attributes('-topmost', True)
         
-        # Set grab after positioning
-        dialog.grab_set()
+        # Don't use grab_set to prevent clipboard conflicts
+        # dialog.grab_set()  # Removed to prevent clipboard conflicts
         
         # Main frame
         main_frame = tk.Frame(dialog, bg='#f8f9fa')
@@ -257,18 +297,39 @@ class TextHelperAI:
         text_widget.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         
-        # Auto-paste clipboard content
-        try:
-            import pyperclip
-            clipboard_content = pyperclip.paste()
-            if clipboard_content and clipboard_content.strip():
-                text_widget.insert(tk.END, clipboard_content.strip())
-                self.logger.info("Auto-pasted clipboard content")
-        except Exception as e:
-            self.logger.warning(f"Could not auto-paste clipboard: {e}")
+        # Safe auto-paste clipboard content with conflict prevention
+        def safe_auto_paste():
+            try:
+                # Small delay to ensure dialog is fully initialized
+                import time
+                time.sleep(0.1)
+                
+                # Try to get clipboard content safely
+                import pyperclip
+                clipboard_content = pyperclip.paste()
+                
+                if clipboard_content and clipboard_content.strip():
+                    # Only paste if text widget is empty and ready
+                    current_content = text_widget.get("1.0", tk.END).strip()
+                    if not current_content:
+                        text_widget.insert(tk.END, clipboard_content.strip())
+                        self.logger.info("Auto-pasted clipboard content safely")
+                    else:
+                        self.logger.info("Text widget not empty, skipping auto-paste")
+                else:
+                    self.logger.info("Clipboard empty, no auto-paste")
+                    
+            except Exception as e:
+                self.logger.warning(f"Could not auto-paste clipboard safely: {e}")
+        
+        # Schedule auto-paste with delay to prevent conflicts
+        dialog.after(200, safe_auto_paste)
         
         # Focus on text widget
         text_widget.focus_set()
+        
+        # Context menu temporarily disabled to prevent freezing
+        # self._setup_context_menu_for_dialog(text_widget)
         
         # Buttons frame
         buttons_frame = tk.Frame(main_frame, bg='#f8f9fa')
@@ -357,6 +418,8 @@ class TextHelperAI:
         
         dialog.protocol("WM_DELETE_WINDOW", on_closing)
         
+        # No focus management needed - let system handle naturally
+        
         # Store result
         self._dialog_result = None
         
@@ -396,6 +459,9 @@ class TextHelperAI:
         # Make it always on top
         dialog.attributes('-topmost', True)
         
+        # Don't use grab_set to prevent clipboard conflicts
+        # dialog.grab_set()  # Removed to prevent clipboard conflicts
+        
         # Main frame
         main_frame = tk.Frame(dialog, bg='#f8f9fa')
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
@@ -431,18 +497,39 @@ class TextHelperAI:
         text_widget.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         
-        # Auto-paste clipboard content
-        try:
-            import pyperclip
-            clipboard_content = pyperclip.paste()
-            if clipboard_content and clipboard_content.strip():
-                text_widget.insert(tk.END, clipboard_content.strip())
-                self.logger.info("Auto-pasted clipboard content")
-        except Exception as e:
-            self.logger.warning(f"Could not auto-paste clipboard: {e}")
+        # Safe auto-paste clipboard content with conflict prevention
+        def safe_auto_paste():
+            try:
+                # Small delay to ensure dialog is fully initialized
+                import time
+                time.sleep(0.1)
+                
+                # Try to get clipboard content safely
+                import pyperclip
+                clipboard_content = pyperclip.paste()
+                
+                if clipboard_content and clipboard_content.strip():
+                    # Only paste if text widget is empty and ready
+                    current_content = text_widget.get("1.0", tk.END).strip()
+                    if not current_content:
+                        text_widget.insert(tk.END, clipboard_content.strip())
+                        self.logger.info("Auto-pasted clipboard content safely")
+                    else:
+                        self.logger.info("Text widget not empty, skipping auto-paste")
+                else:
+                    self.logger.info("Clipboard empty, no auto-paste")
+                    
+            except Exception as e:
+                self.logger.warning(f"Could not auto-paste clipboard safely: {e}")
+        
+        # Schedule auto-paste with delay to prevent conflicts
+        dialog.after(200, safe_auto_paste)
         
         # Focus on text widget
         text_widget.focus_set()
+        
+        # Context menu temporarily disabled to prevent freezing
+        # self._setup_context_menu_for_dialog(text_widget)
         
         # Buttons frame
         buttons_frame = tk.Frame(main_frame, bg='#f8f9fa')
@@ -509,6 +596,8 @@ class TextHelperAI:
         
         dialog.protocol("WM_DELETE_WINDOW", on_closing)
         
+        # No focus management needed - let system handle naturally
+        
         # Store result
         self._simple_dialog_result = None
         
@@ -558,7 +647,7 @@ class TextHelperAI:
             dialog.destroy()
     
     def _close_dialog(self, dialog, text_widget):
-        """Close dialog and return result"""
+        """Close dialog and return result with safe cleanup"""
         try:
             if text_widget:
                 # Get all text content
@@ -575,10 +664,16 @@ class TextHelperAI:
             # Ensure proper cleanup to prevent dialog freeze
             try:
                 dialog.grab_release()  # Release the grab before destroying
+            except:
+                pass  # Ignore errors during cleanup
+            try:
                 dialog.attributes('-topmost', False)  # Remove topmost attribute
             except:
                 pass  # Ignore errors during cleanup
-            dialog.destroy()
+            try:
+                dialog.destroy()
+            except:
+                pass  # Ignore errors during cleanup
     
     def run(self, show_config: bool = False):
         """Run the application"""
@@ -592,11 +687,208 @@ class TextHelperAI:
             raise
     
     
+    def _setup_context_menu_for_dialog(self, text_widget):
+        """Setup context menu for dialog text widget"""
+        # Create context menu
+        context_menu = tk.Menu(text_widget, tearoff=0)
+        
+        # Add menu items
+        context_menu.add_command(label="📋 Copiar", command=lambda: self._copy_text_dialog(text_widget))
+        context_menu.add_command(label="📄 Colar", command=lambda: self._paste_text_dialog(text_widget))
+        context_menu.add_command(label="✂️ Cortar", command=lambda: self._cut_text_dialog(text_widget))
+        context_menu.add_separator()
+        context_menu.add_command(label="📝 Selecionar Tudo", command=lambda: self._select_all_text_dialog(text_widget))
+        context_menu.add_command(label="🗑️ Limpar", command=lambda: self._clear_text_dialog(text_widget))
+        
+        # Bind right-click event
+        def show_context_menu(event):
+            try:
+                # Show context menu at cursor position
+                context_menu.tk_popup(event.x_root, event.y_root)
+            except Exception as e:
+                self.logger.warning(f"Error showing context menu: {e}")
+            finally:
+                # Make sure to release the grab
+                try:
+                    context_menu.grab_release()
+                except:
+                    pass
+        
+        text_widget.bind("<Button-3>", show_context_menu)  # Right-click
+        text_widget.bind("<Button-2>", show_context_menu)  # Middle-click (for some systems)
+    
+    def _copy_text_dialog(self, text_widget):
+        """Copy selected text to clipboard in dialog using pyperclip"""
+        try:
+            # Get selected text
+            selected_text = text_widget.get(tk.SEL_FIRST, tk.SEL_LAST) if text_widget.tag_ranges(tk.SEL) else ""
+            if selected_text:
+                # Copy to clipboard using pyperclip
+                import pyperclip
+                pyperclip.copy(selected_text)
+                self.logger.info("Text copied to clipboard from dialog using pyperclip")
+            else:
+                self.logger.warning("No text selected for copying")
+        except Exception as e:
+            self.logger.error(f"Error copying text from dialog: {e}")
+    
+    def _paste_text_dialog(self, text_widget):
+        """Paste text from clipboard in dialog using pyperclip"""
+        try:
+            # Get clipboard content using pyperclip
+            import pyperclip
+            clipboard_content = pyperclip.paste()
+            if clipboard_content:
+                # Insert at cursor position
+                text_widget.insert(tk.INSERT, clipboard_content)
+                self.logger.info("Text pasted from clipboard to dialog using pyperclip")
+            else:
+                self.logger.warning("Clipboard is empty")
+        except Exception as e:
+            self.logger.error(f"Error pasting text to dialog: {e}")
+    
+    def _cut_text_dialog(self, text_widget):
+        """Cut selected text to clipboard in dialog using pyperclip"""
+        try:
+            # Get selected text
+            selected_text = text_widget.get(tk.SEL_FIRST, tk.SEL_LAST) if text_widget.tag_ranges(tk.SEL) else ""
+            if selected_text:
+                # Copy to clipboard using pyperclip
+                import pyperclip
+                pyperclip.copy(selected_text)
+                # Delete selected text
+                text_widget.delete(tk.SEL_FIRST, tk.SEL_LAST)
+                self.logger.info("Text cut to clipboard from dialog using pyperclip")
+            else:
+                self.logger.warning("No text selected for cutting")
+        except Exception as e:
+            self.logger.error(f"Error cutting text from dialog: {e}")
+    
+    def _select_all_text_dialog(self, text_widget):
+        """Select all text in dialog widget"""
+        try:
+            text_widget.tag_add(tk.SEL, "1.0", tk.END)
+            text_widget.mark_set(tk.INSERT, "1.0")
+            text_widget.see(tk.INSERT)
+            self.logger.info("All text selected in dialog")
+        except Exception as e:
+            self.logger.error(f"Error selecting all text in dialog: {e}")
+    
+    def _clear_text_dialog(self, text_widget):
+        """Clear all text in dialog widget"""
+        try:
+            text_widget.delete("1.0", tk.END)
+            self.logger.info("Text cleared in dialog")
+        except Exception as e:
+            self.logger.error(f"Error clearing text in dialog: {e}")
+    
+    def _show_result_notification(self, processed_text, operation_type):
+        """Show result in system notification with copy button"""
+        try:
+            # Import plyer for system notifications
+            from plyer import notification
+            
+            # Truncate text for notification (max 200 chars)
+            display_text = processed_text[:200] + "..." if len(processed_text) > 200 else processed_text
+            
+            # Operation names in Portuguese
+            operation_names = {
+                'shorten': 'Encurtado',
+                'improve': 'Melhorado', 
+                'informal': 'Informal',
+                'formal': 'Formal',
+                'spellcheck': 'Corrigido',
+                'summarize': 'Resumido',
+                'translate_en': 'Traduzido para Inglês',
+                'emojify': 'Com Emojis'
+            }
+            
+            operation_name = operation_names.get(operation_type, operation_type)
+            
+            # Show system notification
+            notification.notify(
+                title=f"✅ Texto {operation_name} com Sucesso!",
+                message=f"Resultado: {display_text}",
+                app_name="Text Helper IA",
+                timeout=10,  # 10 seconds
+                toast=False
+            )
+            
+            # Also copy to clipboard automatically
+            import pyperclip
+            pyperclip.copy(processed_text)
+            
+            # Update status in main window
+            if self.main_window:
+                self.main_window.update_status(f"Texto {operation_name}! Resultado copiado para clipboard e mostrado em notificação.", '#28a745')
+            
+            self.logger.info(f"Result notification shown for operation: {operation_type}")
+            
+        except ImportError:
+            # Fallback if plyer is not available
+            self.logger.warning("Plyer not available, using fallback notification")
+            self._show_fallback_notification(processed_text, operation_type)
+        except Exception as e:
+            self.logger.error(f"Error showing notification: {e}")
+            self._show_fallback_notification(processed_text, operation_type)
+    
+    def _show_fallback_notification(self, processed_text, operation_type):
+        """Fallback notification using tkinter messagebox"""
+        try:
+            import tkinter as tk
+            from tkinter import messagebox
+            
+            # Truncate text for messagebox
+            display_text = processed_text[:500] + "..." if len(processed_text) > 500 else processed_text
+            
+            # Operation names in Portuguese
+            operation_names = {
+                'shorten': 'Encurtado',
+                'improve': 'Melhorado', 
+                'informal': 'Informal',
+                'formal': 'Formal',
+                'spellcheck': 'Corrigido',
+                'summarize': 'Resumido',
+                'translate_en': 'Traduzido para Inglês',
+                'emojify': 'Com Emojis'
+            }
+            
+            operation_name = operation_names.get(operation_type, operation_type)
+            
+            # Copy to clipboard
+            import pyperclip
+            pyperclip.copy(processed_text)
+            
+            # Show messagebox
+            messagebox.showinfo(
+                f"✅ Texto {operation_name}!",
+                f"Resultado copiado para clipboard:\n\n{display_text}\n\n(Use Ctrl+V para colar)"
+            )
+            
+            # Update status
+            if self.main_window:
+                self.main_window.update_status(f"Texto {operation_name}! Resultado copiado para clipboard.", '#28a745')
+            
+            self.logger.info(f"Fallback notification shown for operation: {operation_type}")
+            
+        except Exception as e:
+            self.logger.error(f"Error showing fallback notification: {e}")
+            # Last resort - just update status
+            if self.main_window:
+                self.main_window.update_status(f"Texto processado! Verifique a janela principal.", '#28a745')
+
     def cleanup(self):
         """Cleanup resources when application exits"""
         try:
             # Stop any processing
             self.is_processing = False
+            
+            # Close main window if it exists
+            if self.main_window:
+                try:
+                    self.main_window.close()
+                except Exception as e:
+                    self.logger.warning(f"Error closing main window: {e}")
             
             # Wait for threads to finish (with timeout)
             if hasattr(self, '_processing_threads'):
@@ -605,6 +897,17 @@ class TextHelperAI:
                         thread.join(timeout=2.0)  # Wait max 2 seconds
                         if thread.is_alive():
                             self.logger.warning(f"Thread {thread.name} did not finish in time")
+            
+            # Force cleanup of any remaining tkinter windows
+            try:
+                import tkinter as tk
+                for widget in tk._default_root.winfo_children() if tk._default_root else []:
+                    try:
+                        widget.destroy()
+                    except:
+                        pass
+            except:
+                pass
             
             self.logger.info("Application cleanup completed")
         except Exception as e:

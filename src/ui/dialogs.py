@@ -19,11 +19,12 @@ class LoadingDialog:
         self.dialog.geometry("350x180")
         self.dialog.resizable(False, False)
         self.dialog.transient(parent)
-        self.dialog.grab_set()
         
         # Animation control
         self._animation_running = True
         self._animation_id = None
+        self._timeout_id = None
+        self._is_closed = False
         
         # Center the dialog
         self._center_dialog()
@@ -33,6 +34,12 @@ class LoadingDialog:
         
         self.setup_ui(message)
         self._animate_loading()
+        
+        # Set grab with timeout protection
+        self._safe_grab_set()
+        
+        # Auto-timeout after 60 seconds to prevent permanent freeze
+        self._timeout_id = self.dialog.after(60000, self._auto_close_timeout)
         
         # Handle window close event
         self.dialog.protocol("WM_DELETE_WINDOW", self.close)
@@ -123,19 +130,73 @@ class LoadingDialog:
         if self.logger:
             self.logger.info(f"Loading status: {message}")
         
+    def _safe_grab_set(self):
+        """Safely set grab with error handling"""
+        try:
+            self.dialog.grab_set()
+        except Exception as e:
+            if self.logger:
+                self.logger.warning(f"Could not set grab: {e}")
+    
+    def _safe_grab_release(self):
+        """Safely release grab with error handling"""
+        try:
+            self.dialog.grab_release()
+        except Exception as e:
+            if self.logger:
+                self.logger.warning(f"Could not release grab: {e}")
+    
+    def _auto_close_timeout(self):
+        """Auto-close dialog after timeout to prevent permanent freeze"""
+        if not self._is_closed:
+            if self.logger:
+                self.logger.warning("Loading dialog auto-closed due to timeout")
+            self.close()
+    
     def close(self):
-        """Close the loading dialog"""
+        """Close the loading dialog with safe cleanup"""
+        if self._is_closed:
+            return
+        
+        self._is_closed = True
+        
         # Stop animation
         self._animation_running = False
         if self._animation_id:
-            self.dialog.after_cancel(self._animation_id)
+            try:
+                self.dialog.after_cancel(self._animation_id)
+            except:
+                pass
             self._animation_id = None
         
+        # Cancel timeout
+        if self._timeout_id:
+            try:
+                self.dialog.after_cancel(self._timeout_id)
+            except:
+                pass
+            self._timeout_id = None
+        
         # Stop progress bar
-        self.progress.stop()
+        try:
+            self.progress.stop()
+        except:
+            pass
+        
+        # Safe grab release
+        self._safe_grab_release()
+        
+        # Remove topmost attribute
+        try:
+            self.dialog.attributes('-topmost', False)
+        except:
+            pass
         
         # Destroy dialog
-        self.dialog.destroy()
+        try:
+            self.dialog.destroy()
+        except:
+            pass
 
 
 class SuccessDialog:
@@ -268,6 +329,9 @@ class SuccessDialog:
         # Keep it in normal state for selection but prevent editing
         original_text_widget.config(state=tk.NORMAL)
         
+        # Context menu temporarily disabled to prevent freezing
+        # self._setup_context_menu_for_dialog(original_text_widget)
+        
         # Add click to select all functionality for original text
         def select_all_original(event):
             original_text_widget.tag_add(tk.SEL, "1.0", tk.END)
@@ -277,38 +341,13 @@ class SuccessDialog:
         
         original_text_widget.bind("<Button-1>", select_all_original)
         
-        # Add Ctrl+A support
-        def select_all_original_ctrl_a(event):
-            original_text_widget.tag_add(tk.SEL, "1.0", tk.END)
-            original_text_widget.mark_set(tk.INSERT, "1.0")
-            return 'break'
+        # Let tkinter handle Ctrl+A naturally - no custom binding needed
         
-        original_text_widget.bind("<Control-a>", select_all_original_ctrl_a)
+        # Set text widget to read-only instead of using key bindings
+        original_text_widget.config(state=tk.DISABLED)
         
-        # Prevent editing but allow selection
-        def prevent_edit_original(event):
-            if event.keysym in ['BackSpace', 'Delete', 'Return', 'space']:
-                return 'break'
-            if len(event.char) > 0 and ord(event.char) >= 32:
-                return 'break'
-        
-        original_text_widget.bind("<Key>", prevent_edit_original)
-        
-        # Add Ctrl+C support for easy copying
-        def copy_original_text(event):
-            try:
-                # Get selected text or all text
-                selected_text = original_text_widget.get(tk.SEL_FIRST, tk.SEL_LAST) if original_text_widget.tag_ranges(tk.SEL) else original_text_widget.get("1.0", tk.END).strip()
-                if selected_text:
-                    # Copy to system clipboard using tkinter's built-in method
-                    original_text_widget.clipboard_clear()
-                    original_text_widget.clipboard_append(selected_text)
-                    original_text_widget.update()
-            except:
-                pass
-            return 'break'
-        
-        original_text_widget.bind("<Control-c>", copy_original_text)
+        # Remove problematic Ctrl+C binding to prevent system freezing
+        # Let tkinter handle copy operations naturally without interference
         
         # Right side - Processed text
         right_frame = tk.Frame(content_frame, bg='#f8f9fa')
@@ -359,6 +398,9 @@ class SuccessDialog:
         processed_text_widget.insert(tk.END, processed_text)
         # Keep it editable and selectable
         
+        # Context menu temporarily disabled to prevent freezing
+        # self._setup_context_menu_for_dialog(processed_text_widget)
+        
         # Add click to select all functionality for processed text
         def select_all_processed(event):
             processed_text_widget.tag_add(tk.SEL, "1.0", tk.END)
@@ -368,29 +410,10 @@ class SuccessDialog:
         
         processed_text_widget.bind("<Button-1>", select_all_processed)
         
-        # Add Ctrl+A support for processed text
-        def select_all_processed_ctrl_a(event):
-            processed_text_widget.tag_add(tk.SEL, "1.0", tk.END)
-            processed_text_widget.mark_set(tk.INSERT, "1.0")
-            return 'break'
+        # Let tkinter handle Ctrl+A naturally - no custom binding needed
         
-        processed_text_widget.bind("<Control-a>", select_all_processed_ctrl_a)
-        
-        # Add Ctrl+C support for easy copying
-        def copy_processed_text(event):
-            try:
-                # Get selected text or all text
-                selected_text = processed_text_widget.get(tk.SEL_FIRST, tk.SEL_LAST) if processed_text_widget.tag_ranges(tk.SEL) else processed_text_widget.get("1.0", tk.END).strip()
-                if selected_text:
-                    # Copy to system clipboard using tkinter's built-in method
-                    processed_text_widget.clipboard_clear()
-                    processed_text_widget.clipboard_append(selected_text)
-                    processed_text_widget.update()
-            except:
-                pass
-            return 'break'
-        
-        processed_text_widget.bind("<Control-c>", copy_processed_text)
+        # Remove problematic Ctrl+C binding to prevent system freezing
+        # Let tkinter handle copy operations naturally without interference
         
         # Store reference for copy functionality
         self.processed_text_widget = processed_text_widget
@@ -482,6 +505,115 @@ class SuccessDialog:
             if self.logger:
                 self.logger.error(f"Error saving text to file: {e}")
         
+    def _setup_context_menu_for_dialog(self, text_widget):
+        """Setup context menu for dialog text widget"""
+        # Create context menu
+        context_menu = tk.Menu(text_widget, tearoff=0)
+        
+        # Add menu items
+        context_menu.add_command(label="📋 Copiar", command=lambda: self._copy_text_dialog(text_widget))
+        context_menu.add_command(label="📄 Colar", command=lambda: self._paste_text_dialog(text_widget))
+        context_menu.add_command(label="✂️ Cortar", command=lambda: self._cut_text_dialog(text_widget))
+        context_menu.add_separator()
+        context_menu.add_command(label="📝 Selecionar Tudo", command=lambda: self._select_all_text_dialog(text_widget))
+        context_menu.add_command(label="🗑️ Limpar", command=lambda: self._clear_text_dialog(text_widget))
+        
+        # Bind right-click event
+        def show_context_menu(event):
+            try:
+                # Show context menu at cursor position
+                context_menu.tk_popup(event.x_root, event.y_root)
+            except Exception as e:
+                if self.logger:
+                    self.logger.warning(f"Error showing context menu: {e}")
+            finally:
+                # Make sure to release the grab
+                try:
+                    context_menu.grab_release()
+                except:
+                    pass
+        
+        text_widget.bind("<Button-3>", show_context_menu)  # Right-click
+        text_widget.bind("<Button-2>", show_context_menu)  # Middle-click (for some systems)
+    
+    def _copy_text_dialog(self, text_widget):
+        """Copy selected text to clipboard in dialog using pyperclip"""
+        try:
+            # Get selected text
+            selected_text = text_widget.get(tk.SEL_FIRST, tk.SEL_LAST) if text_widget.tag_ranges(tk.SEL) else ""
+            if selected_text:
+                # Copy to clipboard using pyperclip
+                import pyperclip
+                pyperclip.copy(selected_text)
+                if self.logger:
+                    self.logger.info("Text copied to clipboard from dialog using pyperclip")
+            else:
+                if self.logger:
+                    self.logger.warning("No text selected for copying")
+        except Exception as e:
+            if self.logger:
+                self.logger.error(f"Error copying text from dialog: {e}")
+    
+    def _paste_text_dialog(self, text_widget):
+        """Paste text from clipboard in dialog using pyperclip"""
+        try:
+            # Get clipboard content using pyperclip
+            import pyperclip
+            clipboard_content = pyperclip.paste()
+            if clipboard_content:
+                # Insert at cursor position
+                text_widget.insert(tk.INSERT, clipboard_content)
+                if self.logger:
+                    self.logger.info("Text pasted from clipboard to dialog using pyperclip")
+            else:
+                if self.logger:
+                    self.logger.warning("Clipboard is empty")
+        except Exception as e:
+            if self.logger:
+                self.logger.error(f"Error pasting text to dialog: {e}")
+    
+    def _cut_text_dialog(self, text_widget):
+        """Cut selected text to clipboard in dialog using pyperclip"""
+        try:
+            # Get selected text
+            selected_text = text_widget.get(tk.SEL_FIRST, tk.SEL_LAST) if text_widget.tag_ranges(tk.SEL) else ""
+            if selected_text:
+                # Copy to clipboard using pyperclip
+                import pyperclip
+                pyperclip.copy(selected_text)
+                # Delete selected text
+                text_widget.delete(tk.SEL_FIRST, tk.SEL_LAST)
+                if self.logger:
+                    self.logger.info("Text cut to clipboard from dialog using pyperclip")
+            else:
+                if self.logger:
+                    self.logger.warning("No text selected for cutting")
+        except Exception as e:
+            if self.logger:
+                self.logger.error(f"Error cutting text from dialog: {e}")
+    
+    def _select_all_text_dialog(self, text_widget):
+        """Select all text in dialog widget"""
+        try:
+            text_widget.tag_add(tk.SEL, "1.0", tk.END)
+            text_widget.mark_set(tk.INSERT, "1.0")
+            text_widget.see(tk.INSERT)
+            if self.logger:
+                self.logger.info("All text selected in dialog")
+        except Exception as e:
+            if self.logger:
+                self.logger.error(f"Error selecting all text in dialog: {e}")
+    
+    def _clear_text_dialog(self, text_widget):
+        """Clear all text in dialog widget"""
+        try:
+            text_widget.delete("1.0", tk.END)
+            if self.logger:
+                self.logger.info("Text cleared in dialog")
+        except Exception as e:
+            if self.logger:
+                self.logger.error(f"Error clearing text in dialog: {e}")
+
     def close(self):
         """Close the success dialog"""
         self.dialog.destroy()
@@ -498,11 +630,17 @@ class ErrorDialog:
         self.dialog.geometry("450x250")
         self.dialog.resizable(False, False)
         self.dialog.transient(parent)
-        self.dialog.grab_set()
         self.dialog.attributes('-topmost', True)
+        self._is_closed = False
         
         # Center the dialog
         self._center_dialog()
+        
+        # Safe grab set
+        self._safe_grab_set()
+        
+        # Auto-timeout after 30 seconds
+        self._timeout_id = self.dialog.after(30000, self._auto_close_timeout)
         
         self.setup_ui(error_message)
         
@@ -566,7 +704,7 @@ class ErrorDialog:
         close_btn = tk.Button(
             main_frame, 
             text="✖️ Fechar", 
-            command=self.dialog.destroy,
+            command=self.close,
             bg='#dc3545', 
             fg='white', 
             font=("Arial", 10, "bold"),
@@ -580,6 +718,58 @@ class ErrorDialog:
         
         if self.logger:
             self.logger.error(f"Error dialog shown: {error_message}")
+    
+    def _safe_grab_set(self):
+        """Safely set grab with error handling"""
+        try:
+            self.dialog.grab_set()
+        except Exception as e:
+            if self.logger:
+                self.logger.warning(f"Could not set grab: {e}")
+    
+    def _safe_grab_release(self):
+        """Safely release grab with error handling"""
+        try:
+            self.dialog.grab_release()
+        except Exception as e:
+            if self.logger:
+                self.logger.warning(f"Could not release grab: {e}")
+    
+    def _auto_close_timeout(self):
+        """Auto-close dialog after timeout to prevent permanent freeze"""
+        if not self._is_closed:
+            if self.logger:
+                self.logger.warning("Error dialog auto-closed due to timeout")
+            self.close()
+    
+    def close(self):
+        """Close the error dialog with safe cleanup"""
+        if self._is_closed:
+            return
+        
+        self._is_closed = True
+        
+        # Cancel timeout
+        if hasattr(self, '_timeout_id') and self._timeout_id:
+            try:
+                self.dialog.after_cancel(self._timeout_id)
+            except:
+                pass
+        
+        # Safe grab release
+        self._safe_grab_release()
+        
+        # Remove topmost attribute
+        try:
+            self.dialog.attributes('-topmost', False)
+        except:
+            pass
+        
+        # Destroy dialog
+        try:
+            self.dialog.destroy()
+        except:
+            pass
 
 
 class ConfigDialog:
@@ -595,10 +785,16 @@ class ConfigDialog:
         self.dialog.geometry("500x600")
         self.dialog.resizable(True, True)
         self.dialog.transient(parent)
-        self.dialog.grab_set()
+        self._is_closed = False
         
         # Center the dialog
         self._center_dialog()
+        
+        # Safe grab set
+        self._safe_grab_set()
+        
+        # Auto-timeout after 5 minutes
+        self._timeout_id = self.dialog.after(300000, self._auto_close_timeout)
         
         self.setup_ui()
         
@@ -665,7 +861,7 @@ class ConfigDialog:
         cancel_btn = tk.Button(
             buttons_frame, 
             text="❌ Cancelar", 
-            command=self.dialog.destroy,
+            command=self.close,
             bg='#6c757d', 
             fg='white', 
             font=("Arial", 12, "bold"),
@@ -742,7 +938,7 @@ class ConfigDialog:
             self.on_save()
             
             messagebox.showinfo("Sucesso", "Configurações salvas com sucesso!")
-            self.dialog.destroy()
+            self.close()
             
             if self.logger:
                 self.logger.info("Configuration saved successfully")
@@ -751,3 +947,49 @@ class ConfigDialog:
             messagebox.showerror("Erro", f"Erro ao salvar configurações: {e}")
             if self.logger:
                 self.logger.error(f"Error saving configuration: {e}")
+    
+    def _safe_grab_set(self):
+        """Safely set grab with error handling"""
+        try:
+            self.dialog.grab_set()
+        except Exception as e:
+            if self.logger:
+                self.logger.warning(f"Could not set grab: {e}")
+    
+    def _safe_grab_release(self):
+        """Safely release grab with error handling"""
+        try:
+            self.dialog.grab_release()
+        except Exception as e:
+            if self.logger:
+                self.logger.warning(f"Could not release grab: {e}")
+    
+    def _auto_close_timeout(self):
+        """Auto-close dialog after timeout to prevent permanent freeze"""
+        if not self._is_closed:
+            if self.logger:
+                self.logger.warning("Config dialog auto-closed due to timeout")
+            self.close()
+    
+    def close(self):
+        """Close the config dialog with safe cleanup"""
+        if self._is_closed:
+            return
+        
+        self._is_closed = True
+        
+        # Cancel timeout
+        if hasattr(self, '_timeout_id') and self._timeout_id:
+            try:
+                self.dialog.after_cancel(self._timeout_id)
+            except:
+                pass
+        
+        # Safe grab release
+        self._safe_grab_release()
+        
+        # Destroy dialog
+        try:
+            self.dialog.destroy()
+        except:
+            pass

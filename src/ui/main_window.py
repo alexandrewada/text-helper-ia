@@ -27,13 +27,13 @@ class MainWindow:
         ui_config = self.config.get_ui_config()
         
         self.root.title("Text Helper IA")
-        self.root.geometry("700x600")
+        self.root.geometry("700x400")
         self.root.configure(bg='#f8f9fa')
         
         # Center window on screen
         self.root.update_idletasks()
         x = (self.root.winfo_screenwidth() // 2) - 350
-        y = (self.root.winfo_screenheight() // 2) - 300
+        y = (self.root.winfo_screenheight() // 2) - 200
         self.root.geometry(f"+{x}+{y}")
         
         # Set window icon (if available)
@@ -57,8 +57,7 @@ class MainWindow:
         # Control buttons
         self._create_controls(main_container)
         
-        # Result section
-        self._create_result_section(main_container)
+        # No result section needed - results shown in notifications
         
         # Status section
         self._create_status(main_container)
@@ -187,112 +186,6 @@ class MainWindow:
         # Add hover effects
         self._add_hover_effect(config_btn, "#6c757d")
     
-    def _create_result_section(self, parent):
-        """Create result section"""
-        self.result_frame = tk.Frame(parent, bg='#f8f9fa')
-        # Don't pack initially - will be shown when there's a result
-        
-        # Result title
-        result_title = tk.Label(
-            self.result_frame, 
-            text="✨ Resultado", 
-            font=("Arial", 12, "bold"), 
-            bg='#f8f9fa',
-            fg='#343a40'
-        )
-        result_title.pack(anchor=tk.W, pady=(0, 10))
-        
-        # Result text widget with scrollbar
-        text_frame = tk.Frame(self.result_frame, bg='#f8f9fa')
-        text_frame.pack(fill=tk.BOTH, expand=True)
-        
-        self.result_text = tk.Text(
-            text_frame, 
-            height=8, 
-            wrap=tk.WORD, 
-            bg='#e8f5e8', 
-            relief=tk.SUNKEN, 
-            bd=1,
-            font=("Arial", 10),
-            padx=10,
-            pady=10,
-            state=tk.NORMAL
-        )
-        result_scrollbar = tk.Scrollbar(text_frame, orient="vertical", command=self.result_text.yview)
-        self.result_text.configure(yscrollcommand=result_scrollbar.set)
-        
-        self.result_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        result_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        
-        # Result buttons frame
-        result_buttons_frame = tk.Frame(self.result_frame, bg='#f8f9fa')
-        result_buttons_frame.pack(fill=tk.X, pady=(10, 0))
-        
-        # Select button
-        copy_btn = tk.Button(
-            result_buttons_frame, 
-            text="📋 Selecionar", 
-            command=self.copy_result,
-            bg='#28a745', 
-            fg='white', 
-            font=("Arial", 9, "bold"),
-            relief=tk.FLAT, 
-            bd=0,
-            padx=15,
-            pady=5,
-            cursor='hand2'
-        )
-        copy_btn.pack(side=tk.LEFT, padx=(0, 10))
-        
-        # Clear button
-        clear_btn = tk.Button(
-            result_buttons_frame, 
-            text="🗑️ Limpar", 
-            command=self.clear_result,
-            bg='#6c757d', 
-            fg='white', 
-            font=("Arial", 9, "bold"),
-            relief=tk.FLAT, 
-            bd=0,
-            padx=15,
-            pady=5,
-            cursor='hand2'
-        )
-        clear_btn.pack(side=tk.LEFT)
-        
-        # Add hover effects
-        self._add_hover_effect(copy_btn, "#28a745")
-        self._add_hover_effect(clear_btn, "#6c757d")
-        
-        # Add click to select all functionality for result text
-        def select_all_result(event):
-            self.result_text.tag_add(tk.SEL, "1.0", tk.END)
-            self.result_text.mark_set(tk.INSERT, "1.0")
-            self.result_text.see(tk.INSERT)
-            return 'break'
-        
-        self.result_text.bind("<Button-1>", select_all_result)
-        
-        # Add Ctrl+A support for result text
-        def select_all_result_ctrl_a(event):
-            self.result_text.tag_add(tk.SEL, "1.0", tk.END)
-            self.result_text.mark_set(tk.INSERT, "1.0")
-            return 'break'
-        
-        self.result_text.bind("<Control-a>", select_all_result_ctrl_a)
-        
-        # Add Ctrl+C support for easy copying (simplified)
-        def copy_result_text(event):
-            try:
-                # Let tkinter handle the copy operation naturally
-                # Just update status to show it worked
-                if hasattr(self, 'status_text'):
-                    self.status_text.config(text="Status: Texto copiado!", fg='#28a745')
-            except Exception as e:
-                self.logger.error(f"Error in Ctrl+C copy: {e}")
-            # Don't return 'break' to allow normal copy behavior
-        
-        self.result_text.bind("<Control-c>", copy_result_text)
     
     def _create_status(self, parent):
         """Create status section"""
@@ -376,50 +269,7 @@ class MainWindow:
         self.logger.info(f"Info shown: {title} - {message}")
     
     def set_result(self, text: str):
-        """Set result text"""
-        self.result_text.delete("1.0", tk.END)
-        self.result_text.insert("1.0", text)
-        self.show_result_section()
-        self.logger.info("Result text updated")
+        """Set result text (now just for compatibility - results shown in notifications)"""
+        # Results are now shown in system notifications, this method is kept for compatibility
+        self.logger.info("Result text received (shown in notification)")
     
-    def copy_result(self):
-        """Select all text for easy copying"""
-        try:
-            text = self.result_text.get("1.0", tk.END).strip()
-            if text:
-                # Select all text instead of copying to clipboard
-                self.result_text.tag_add(tk.SEL, "1.0", tk.END)
-                self.result_text.mark_set(tk.INSERT, "1.0")
-                self.result_text.see(tk.INSERT)
-                
-                # Update status
-                if hasattr(self, 'status_text'):
-                    self.status_text.config(text="Status: Texto selecionado! Pressione Ctrl+C para copiar", fg='#28a745')
-                
-                self.logger.info("Result text selected for copying")
-            else:
-                if hasattr(self, 'status_text'):
-                    self.status_text.config(text="Status: Nenhum resultado para copiar!", fg='#ffc107')
-                self.logger.warning("No result text to copy")
-        except Exception as e:
-            if hasattr(self, 'status_text'):
-                self.status_text.config(text=f"Status: Erro ao selecionar texto: {e}", fg='#dc3545')
-            self.logger.error(f"Error selecting result text: {e}")
-    
-    def clear_result(self):
-        """Clear result text"""
-        self.result_text.delete("1.0", tk.END)
-        self.hide_result_section()
-        self.logger.info("Result text cleared")
-    
-    def show_result_section(self):
-        """Show result section"""
-        if hasattr(self, 'result_frame'):
-            self.result_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 20))
-            self.logger.info("Result section shown")
-    
-    def hide_result_section(self):
-        """Hide result section"""
-        if hasattr(self, 'result_frame'):
-            self.result_frame.pack_forget()
-            self.logger.info("Result section hidden")
