@@ -2,6 +2,11 @@
 """
 Text Helper IA - Suíte completa de processamento de texto com IA
 Versão melhorada com arquitetura modular e interface moderna
+
+Author: Alexandre Riuti Wada
+Email: alexandre.rwada@gmail.com
+GitHub: https://github.com/alexandrewada/text-helper-ia
+License: MIT
 """
 
 import sys

@@ -1,68 +1,48 @@
 # Text Helper IA
 
-Uma suíte completa de processamento de texto com inteligência artificial, oferecendo 14 funções diferentes para melhorar, transformar e analisar textos usando a API do OpenAI.
+Uma aplicação desktop moderna para processamento de texto com inteligência artificial, desenvolvida em Python com interface gráfica intuitiva.
 
-## 🚀 Características
+## 🚀 Funcionalidades
 
-- **14 Funções de Processamento**: Encurtar, melhorar, corrigir, resumir, traduzir e muito mais
-- **Interface Moderna**: Interface gráfica intuitiva e responsiva
-- **Processamento Inteligente**: Detecta automaticamente texto selecionado ou usa área de transferência
-- **Substituição Automática**: Substitui texto selecionado automaticamente quando possível
-- **Configuração Flexível**: Configurações personalizáveis para modelo, tokens e comportamento
-- **Logging Completo**: Sistema de logs para monitoramento e debugging
-- **Arquitetura Modular**: Código bem estruturado e fácil de manter
-
-## 🛠️ Funções Disponíveis
-
-| Função | Descrição | Emoji |
-|--------|-----------|-------|
-| **Encurtar** | Reduz o texto mantendo informações essenciais | 📝 |
-| **Melhorar** | Melhora clareza e estrutura do texto | ✨ |
-| **Corrigir** | Corrige erros ortográficos e gramaticais | ✅ |
-| **Resumir** | Cria resumos concisos destacando pontos principais | 📋 |
-| **Informal** | Transforma em linguagem casual e descontraída | 😊 |
-| **Formal** | Transforma em linguagem formal e profissional | 👔 |
-| **Traduzir (EN)** | Traduz do português para inglês | 🇺🇸 |
-| **Traduzir (PT)** | Traduz do inglês para português | 🇧🇷 |
-| **Expandir** | Adiciona detalhes e exemplos ao texto | 📈 |
-| **Criativo** | Reescreve de forma mais envolvente | 🎨 |
-| **Técnico** | Transforma em linguagem técnica e precisa | 🔧 |
-| **Emojis** | Adiciona emojis relevantes ao texto | 😀 |
-| **Analisar** | Fornece insights sobre tom e estrutura | 🔍 |
-| **Reescrever** | Reescreve com abordagem diferente | ✏️ |
+- **Encurtar Texto**: Reduz o tamanho mantendo o significado
+- **Melhorar Texto**: Aprimora gramática e clareza
+- **Tornar Informal**: Converte para linguagem casual
+- **Tornar Formal**: Converte para linguagem formal
+- **Corrigir Ortografia**: Corrige erros de escrita
+- **Resumir**: Cria resumos concisos
+- **Traduzir para Inglês**: Tradução automática
+- **Adicionar Emojis**: Enriquece texto com emojis apropriados
 
 ## 📋 Pré-requisitos
 
-- Python 3.7 ou superior
+- Python 3.8 ou superior
 - Chave de API do OpenAI
-- Sistema operacional Linux (testado em Debian/Ubuntu)
+- Sistema operacional Linux, Windows ou macOS
 
-## 🔧 Instalação
+## 🛠️ Instalação
 
-### Instalação como Aplicativo do Sistema (Recomendado)
-
+### Instalação Automática (Recomendado)
 ```bash
 # Clone o repositório
-git clone https://github.com/seu-usuario/text-helper-ia.git
+git clone https://github.com/alexandrewada/text-helper-ia.git
 cd text-helper-ia
 
-# Execute o script de instalação do aplicativo
-chmod +x install_app.sh
-./install_app.sh
+# Execute o script de instalação
+chmod +x install.sh
+./install.sh
 ```
 
-Este método irá:
-- Instalar todas as dependências do sistema
-- Configurar o ambiente virtual Python
-- Criar um atalho no menu de aplicações
-- Criar um atalho na área de trabalho (se disponível)
-- Integrar o aplicativo com o sistema operacional
+O script de instalação irá:
+- ✅ Verificar dependências do sistema
+- ✅ Criar ambiente virtual (opcional)
+- ✅ Instalar dependências Python
+- ✅ Instalar atalho no menu (opcional)
+- ✅ Instalar como pacote Python (opcional)
 
 ### Instalação Manual
-
 ```bash
 # Clone o repositório
-git clone https://github.com/seu-usuario/text-helper-ia.git
+git clone https://github.com/alexandrewada/text-helper-ia.git
 cd text-helper-ia
 
 # Crie um ambiente virtual
@@ -71,159 +51,173 @@ source text_helper_ia_env/bin/activate
 
 # Instale as dependências
 pip install -r requirements.txt
+
+# Configure sua chave de API
+python text_helper_ia.py --config
 ```
 
-### Desinstalação
+## 🎯 Como Usar
 
+### Executar a aplicação
 ```bash
-# Para remover o aplicativo do sistema
-./uninstall_app.sh
+python text_helper_ia.py
 ```
 
-## ⚙️ Configuração
+### Interface Principal
+1. **Digite ou cole o texto** que deseja processar
+2. **Selecione a operação** desejada
+3. **Clique em "Processar"**
+4. O resultado será **copiado automaticamente** para a área de transferência
 
-### 1. Configurar Chave da API OpenAI
+### Atalhos de Teclado
+- `Ctrl+Enter`: Processar texto
+- `Ctrl+C`: Copiar resultado
+- `Ctrl+V`: Colar texto
 
-```bash
-# Execute o aplicativo em modo de configuração
-python3 text_helper_ia.py --config
-```
-
-Ou use a interface gráfica:
-1. Execute o aplicativo
-2. Clique em "⚙️ Configurações"
-3. Insira sua chave de API do OpenAI
-4. Configure outros parâmetros conforme necessário
-
-### 2. Configurações Disponíveis
-
-- **Modelo**: gpt-3.5-turbo (padrão) ou gpt-4
-- **Max Tokens**: Limite de tokens por resposta (padrão: 300)
-- **Temperatura**: Criatividade da IA (padrão: 0.3)
-- **Timeout**: Tempo limite para requisições (padrão: 30s)
-- **Auto-cópia**: Copia resultado automaticamente para área de transferência
-- **Auto-substituição**: Substitui texto selecionado automaticamente
-
-## 🚀 Como Usar
-
-### Método 1: Menu de Aplicações (Recomendado)
-
-Após a instalação, você pode executar o aplicativo de três formas:
-
-1. **Menu de Aplicações**: Procure por "Text Helper IA" no menu de aplicações do seu sistema
-2. **Atalho da Área de Trabalho**: Clique no ícone na área de trabalho
-3. **Linha de Comando**: Execute `./launcher.sh` no diretório do projeto
-
-### Método 2: Interface Gráfica
-
-1. **Selecione texto** em qualquer aplicativo
-2. **Clique na função desejada** na interface
-3. **Aguarde o processamento** (diálogo de carregamento)
-4. **Visualize o resultado** no diálogo de sucesso
-5. **O texto processado** será copiado automaticamente ou substituído
-
-### Método 3: Linha de Comando
-
-```bash
-# Configurar
-python3 text_helper_ia.py --config
-
-# Executar
-python3 text_helper_ia.py
-```
-
-## 📁 Estrutura do Projeto
+## 🏗️ Arquitetura
 
 ```
 text-helper-ia/
-├── src/                    # Código fonte principal
-│   ├── app.py             # Classe principal da aplicação
-│   ├── config.py          # Gerenciamento de configurações
-│   ├── ia_client.py       # Cliente OpenAI
-│   ├── text_processor.py  # Processamento de texto e clipboard
-│   ├── logger.py          # Sistema de logging
-│   └── ui/                # Interface gráfica
-│       ├── main_window.py # Janela principal
-│       └── dialogs.py     # Diálogos modais
-├── tests/                 # Testes unitários
-├── requirements.txt       # Dependências Python
-├── install_app.sh        # Script de instalação do aplicativo
-├── uninstall_app.sh      # Script de desinstalação
-├── launcher.sh           # Script launcher para execução
-├── text-helper-ia.desktop # Arquivo .desktop para integração
-├── icon.png              # Ícone do aplicativo
-├── text_helper_ia.py     # Ponto de entrada
-└── README.md             # Este arquivo
+├── src/                           # Código fonte principal
+│   ├── app.py                    # Classe principal da aplicação
+│   ├── config.py                 # Gerenciamento de configurações
+│   ├── ia_client.py              # Cliente OpenAI
+│   ├── text_processor.py         # Processamento de texto
+│   ├── logger.py                 # Sistema de logs
+│   └── ui/                       # Interface do usuário
+│       ├── main_window.py        # Janela principal
+│       └── dialogs.py            # Diálogos modais
+├── tests/                        # Testes unitários
+├── scripts/                      # Scripts de instalação
+│   ├── install_desktop.sh        # Instalar atalho (usuário)
+│   ├── install_desktop_global.sh # Instalar atalho (global)
+│   ├── uninstall_desktop.sh      # Remover atalho (usuário)
+│   └── uninstall_desktop_global.sh # Remover atalho (global)
+├── .github/                      # Configurações do GitHub
+│   ├── ISSUE_TEMPLATE/           # Templates de issues
+│   ├── workflows/                # GitHub Actions
+│   └── pull_request_template.md  # Template de PR
+├── requirements.txt              # Dependências Python
+├── setup.py                     # Script de instalação do pacote
+├── text_helper_ia.py            # Script principal
+├── text_helper_ia_launcher.sh   # Launcher para atalho
+├── text-helper-ia.desktop       # Arquivo de atalho
+├── install.sh                   # Script de instalação completa
+├── uninstall.sh                 # Script de desinstalação completa
+├── README.md                    # Documentação principal
+├── CONTRIBUTING.md              # Guia de contribuição
+├── LICENSE                      # Licença MIT
+└── CHANGELOG.md                 # Histórico de mudanças
 ```
 
-## 🔧 Dependências
+## 🔧 Configuração
 
-- **pynput**: Captura de teclado e mouse
-- **openai**: Cliente oficial da API OpenAI
-- **pyperclip**: Gerenciamento da área de transferência
-- **typing-extensions**: Extensões de tipagem
+### Variáveis de Ambiente
+```bash
+export OPENAI_API_KEY="sua_chave_aqui"
+```
+
+### Arquivo de Configuração
+A aplicação salva configurações em `~/.config/text-helper-ia/config.json`
 
 ## 🧪 Testes
 
 ```bash
 # Execute os testes
-python3 run_tests.py
+python -m pytest tests/
+
+# Com cobertura
+python -m pytest tests/ --cov=src
 ```
 
-## 📝 Logs
+## 🗑️ Desinstalação
 
-Os logs são salvos em `~/.text_helper_ia.log` e incluem:
-- Informações de inicialização
-- Processamento de textos
-- Erros e avisos
-- Configurações aplicadas
+### Desinstalação Automática
+```bash
+# Execute o script de desinstalação
+./uninstall.sh
+```
 
-## 🎯 Casos de Uso
+### Desinstalação Manual
+```bash
+# Remover atalho do menu
+./scripts/uninstall_desktop.sh
 
-- **Escritores**: Melhorar clareza e estilo de textos
-- **Estudantes**: Resumir e traduzir materiais de estudo
-- **Profissionais**: Corrigir e formalizar comunicações
-- **Desenvolvedores**: Documentar código de forma técnica
-- **Criadores de Conteúdo**: Adicionar emojis e tornar textos mais envolventes
+# Remover ambiente virtual
+rm -rf text_helper_ia_env
 
-## 🐛 Solução de Problemas
+# Remover pacote Python
+pip uninstall text-helper-ia
 
-### Erro: "OpenAI client not configured"
-- Execute `python3 text_helper_ia.py --config` para configurar sua chave de API
+# Remover arquivos de configuração
+rm -f ~/.text_helper_ia_config.ini
+rm -f ~/.text_helper_ia.log*
+```
 
-### Erro: "No text found"
-- Selecione texto antes de usar o aplicativo ou copie algo para a área de transferência
+## 📦 Dependências
 
-### Erro: "Text processing already in progress"
-- Aguarde o processamento atual terminar antes de iniciar uma nova operação
-
-### Problemas de Permissão
-- Certifique-se de que o aplicativo tem permissão para acessar a área de transferência
-- Em alguns sistemas, pode ser necessário executar com privilégios elevados
+- **openai**: Cliente para API OpenAI
+- **tkinter**: Interface gráfica (incluído no Python)
+- **pyperclip**: Manipulação da área de transferência
+- **plyer**: Notificações do sistema
+- **pynput**: Captura de eventos do teclado
 
 ## 🤝 Contribuindo
 
+Contribuições são bem-vindas! Por favor, leia nosso [Guia de Contribuição](CONTRIBUTING.md) antes de enviar pull requests.
+
+### Como Contribuir
 1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/nova-funcionalidade`)
-3. Commit suas mudanças (`git commit -m 'feat: adiciona nova funcionalidade'`)
-4. Push para a branch (`git push origin feature/nova-funcionalidade`)
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
 5. Abra um Pull Request
 
-## 📄 Licença
+## 📝 Licença
 
-Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
+
+## 👨‍💻 Autor
+
+**Alexandre Riuti Wada**
+- Email: alexandre.rwada@gmail.com
+- GitHub: [@alexandrewada](https://github.com/alexandrewada)
 
 ## 🙏 Agradecimentos
 
 - OpenAI pela API GPT
-- Comunidade Python pelos pacotes utilizados
+- Comunidade Python pelos recursos e bibliotecas
 - Contribuidores e usuários do projeto
 
-## 📞 Suporte
+## 📊 Status do Projeto
 
-- **Issues**: [GitHub Issues](https://github.com/seu-usuario/text-helper-ia/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/seu-usuario/text-helper-ia/discussions)
+![Python](https://img.shields.io/badge/python-v3.8+-blue.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Status](https://img.shields.io/badge/status-active-success.svg)
+
+## 🐛 Reportar Bugs
+
+Se encontrar algum bug, por favor:
+1. Verifique se já existe uma [issue](https://github.com/alexandrewada/text-helper-ia/issues) sobre o problema
+2. Se não existir, crie uma nova issue com:
+   - Descrição detalhada do problema
+   - Passos para reproduzir
+   - Sistema operacional e versão do Python
+   - Logs de erro (se houver)
+
+## 💡 Sugestões de Melhorias
+
+Tem uma ideia para melhorar o projeto? Abra uma [issue](https://github.com/alexandrewada/text-helper-ia/issues) com a tag "enhancement"!
+
+## 📈 Roadmap
+
+- [ ] Suporte a mais idiomas
+- [ ] Integração com outras APIs de IA
+- [ ] Modo escuro/claro
+- [ ] Plugins personalizados
+- [ ] API REST para integração
+- [ ] Versão web
 
 ---
 
-**Desenvolvido com ❤️ para facilitar o processamento de texto com IA**
+⭐ Se este projeto foi útil para você, considere dar uma estrela no GitHub!

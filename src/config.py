@@ -1,5 +1,10 @@
 """
 Configuration management for Text Helper IA
+
+Author: Alexandre Riuti Wada
+Email: alexandre.rwada@gmail.com
+GitHub: https://github.com/alexandrewada/text-helper-ia
+License: MIT
 """
 import os
 import configparser

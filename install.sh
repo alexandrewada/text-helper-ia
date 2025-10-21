@@ -1,56 +1,140 @@
 #!/bin/bash
 
-# Text Helper IA Installation Script
+# Text Helper IA - Script de Instalação Completo
+# Autor: Alexandre Riuti Wada
+# Email: alexandre.rwada@gmail.com
 
-echo "Installing Text Helper IA..."
+echo "🚀 Text Helper IA - Instalação Completa"
+echo "========================================"
+echo ""
 
-# Check if Python 3 is installed
+# Verificar se Python 3 está instalado
 if ! command -v python3 &> /dev/null; then
-    echo "Error: Python 3 is required but not installed."
+    echo "❌ Erro: Python 3 é necessário mas não está instalado."
+    echo "   Instale Python 3 e tente novamente."
     exit 1
 fi
 
-# Check if pip is installed
+# Verificar se pip está instalado
 if ! command -v pip3 &> /dev/null; then
-    echo "Error: pip3 is required but not installed."
+    echo "❌ Erro: pip3 é necessário mas não está instalado."
+    echo "   Instale pip3 e tente novamente."
     exit 1
 fi
 
-# Create virtual environment
-echo "Creating virtual environment..."
-python3 -m venv text_helper_ia_env
-
-# Install Python dependencies
-echo "Installing Python dependencies..."
-source text_helper_ia_env/bin/activate
-pip install -r requirements.txt
-
-# Make the scripts executable
-chmod +x text_helper_ia.py
-chmod +x run_text_helper_ia.sh
-
-# Create desktop entry for easy access
-DESKTOP_ENTRY="$HOME/.local/share/applications/text-helper-ai.desktop"
-mkdir -p "$HOME/.local/share/applications"
-
-cat > "$DESKTOP_ENTRY" << EOF
-[Desktop Entry]
-Version=1.0
-Type=Application
-Name=Text Helper IA
-Comment=IA-powered text processing suite with 14 functions using ChatGPT
-Exec=$(pwd)/run_text_helper_ia.sh
-Icon=accessories-text-editor
-Terminal=false
-Categories=Utility;TextEditor;
-StartupNotify=true
-EOF
-
-echo "Installation completed!"
+echo "✅ Python 3 e pip3 encontrados"
 echo ""
-echo "Usage:"
-echo "1. Run './run_text_helper_ia.sh --config' to configure your OpenAI API key"
-echo "2. Run './run_text_helper_ia.sh' to start the application"
-echo "3. Select text or copy (Ctrl+C), then use the interface to process it"
+
+# Perguntar se quer criar ambiente virtual
+read -p "📦 Criar ambiente virtual? (recomendado) [S/n]: " create_venv
+create_venv=${create_venv:-S}
+
+if [[ $create_venv =~ ^[Ss]$ ]]; then
+    echo "🔧 Criando ambiente virtual..."
+    python3 -m venv text_helper_ia_env
+    
+    if [ $? -eq 0 ]; then
+        echo "✅ Ambiente virtual criado com sucesso"
+        echo "🔧 Ativando ambiente virtual..."
+        source text_helper_ia_env/bin/activate
+        
+        echo "📥 Instalando dependências..."
+        pip install -r requirements.txt
+        
+        if [ $? -eq 0 ]; then
+            echo "✅ Dependências instaladas com sucesso"
+        else
+            echo "❌ Erro ao instalar dependências"
+            exit 1
+        fi
+    else
+        echo "❌ Erro ao criar ambiente virtual"
+        exit 1
+    fi
+else
+    echo "⚠️  Instalando dependências no Python do sistema..."
+    pip3 install -r requirements.txt
+    
+    if [ $? -eq 0 ]; then
+        echo "✅ Dependências instaladas com sucesso"
+    else
+        echo "❌ Erro ao instalar dependências"
+        exit 1
+    fi
+fi
+
 echo ""
-echo "The application offers 14 text processing functions with a modern interface."
+
+# Perguntar se quer instalar atalho no menu
+read -p "🖥️  Instalar atalho no menu de aplicações? [S/n]: " install_desktop
+install_desktop=${install_desktop:-S}
+
+if [[ $install_desktop =~ ^[Ss]$ ]]; then
+    echo "🖥️  Instalando atalho no menu..."
+    
+    # Perguntar tipo de instalação
+    read -p "   Instalar para todos os usuários? (requer sudo) [s/N]: " global_install
+    global_install=${global_install:-N}
+    
+    if [[ $global_install =~ ^[Ss]$ ]]; then
+        echo "   Instalando globalmente..."
+        sudo ./scripts/install_desktop_global.sh
+    else
+        echo "   Instalando para usuário atual..."
+        ./scripts/install_desktop.sh
+    fi
+fi
+
+echo ""
+
+# Perguntar se quer instalar como pacote Python
+read -p "📦 Instalar como pacote Python? [s/N]: " install_package
+install_package=${install_package:-N}
+
+if [[ $install_package =~ ^[Ss]$ ]]; then
+    echo "📦 Instalando pacote Python..."
+    
+    if [[ $create_venv =~ ^[Ss]$ ]]; then
+        source text_helper_ia_env/bin/activate
+    fi
+    
+    python setup.py install --user
+    
+    if [ $? -eq 0 ]; then
+        echo "✅ Pacote instalado com sucesso"
+    else
+        echo "❌ Erro ao instalar pacote"
+    fi
+fi
+
+echo ""
+echo "🎉 Instalação concluída!"
+echo ""
+echo "📋 Como usar:"
+echo "   • Executar diretamente: python3 text_helper_ia.py"
+if [[ $create_venv =~ ^[Ss]$ ]]; then
+    echo "   • Com ambiente virtual: source text_helper_ia_env/bin/activate && python text_helper_ia.py"
+fi
+if [[ $install_desktop =~ ^[Ss]$ ]]; then
+    echo "   • Pelo menu: Menu de Aplicações > Escritório > Text Helper IA"
+fi
+echo ""
+echo "⚙️  Configuração:"
+echo "   • Configure sua chave OpenAI: python3 text_helper_ia.py --config"
+echo ""
+echo "📚 Documentação:"
+echo "   • README.md - Documentação principal"
+echo "   • INSTALACAO_ATALHO.md - Como gerenciar atalhos"
+echo "   • CONTRIBUTING.md - Como contribuir"
+echo ""
+echo "🗑️  Desinstalação:"
+if [[ $install_desktop =~ ^[Ss]$ ]]; then
+    if [[ $global_install =~ ^[Ss]$ ]]; then
+        echo "   • Atalho: sudo ./scripts/uninstall_desktop_global.sh"
+    else
+        echo "   • Atalho: ./scripts/uninstall_desktop.sh"
+    fi
+fi
+echo "   • Ambiente virtual: rm -rf text_helper_ia_env"
+echo ""
+echo "Obrigado por usar o Text Helper IA! 🚀"
