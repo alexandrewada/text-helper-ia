@@ -1,6 +1,10 @@
+
 # Text Helper IA
 
-Uma aplicação desktop moderna para processamento de texto com inteligência artificial, desenvolvida em Python com interface gráfica intuitiva.
+O projeto Text Helper IA é uma aplicação desktop moderna de processamento de texto com inteligência artificial, desenvolvida em Python e com interface gráfica intuitiva (Tkinter).
+
+# Vídeo demonstrativo
+https://drive.google.com/file/d/17aZbAtfprRfkCF0q27Hak_y8xyCf0gE_/view?usp=sharing
 
 ## 🚀 Funcionalidades
 
