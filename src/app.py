@@ -9,7 +9,6 @@ from .config import Config
 from .logger import Logger
 from .ai_client import AIClient
 from .text_processor import TextProcessor
-from .linux_hotkey import LinuxHotkeyManager
 from .ui.main_window import MainWindow
 from .ui.dialogs import LoadingDialog, SuccessDialog, ErrorDialog, ConfigDialog
 
@@ -28,8 +27,6 @@ class TextHelperAI:
         # UI components
         self.main_window: Optional[MainWindow] = None
         
-        # Hotkey manager
-        self.hotkey_manager = LinuxHotkeyManager(self.logger)
         
         # Application state
         self.is_processing = False
@@ -212,9 +209,6 @@ class TextHelperAI:
     def run(self, show_config: bool = False):
         """Run the application"""
         try:
-            # Setup global hotkey for floating menu
-            self.setup_global_hotkey()
-            
             if show_config:
                 self.show_config_dialog()
             else:
@@ -223,46 +217,10 @@ class TextHelperAI:
             self.logger.error(f"Error running application: {e}")
             raise
     
-    def setup_global_hotkey(self):
-        """Setup global hotkeys for text operations"""
-        try:
-            # Register operations
-            operations = {
-                'shorten': 'Encurtar texto',
-                'improve': 'Melhorar texto',
-                'informal': 'Tornar informal',
-                'formal': 'Tornar formal',
-                'spellcheck': 'Corrigir ortografia',
-                'summarize': 'Resumir texto',
-                'expand': 'Expandir texto',
-                'translate_en': 'Traduzir para inglês',
-                'translate_pt': 'Traduzir para português',
-                'creative': 'Versão criativa',
-                'technical': 'Versão técnica',
-                'emojify': 'Adicionar emojis',
-                'analyze': 'Analisar texto',
-                'rewrite': 'Reescrever texto'
-            }
-            
-            for operation, description in operations.items():
-                self.hotkey_manager.register_operation(
-                    operation, 
-                    lambda op=operation: self.process_text_from_clipboard(op),
-                    description
-                )
-            
-            # Start listening for hotkeys
-            self.hotkey_manager.start_listening()
-            self.logger.info("Hotkey system started with operations")
-            
-        except Exception as e:
-            self.logger.error(f"Error setting up hotkey system: {e}")
     
     def cleanup(self):
         """Cleanup resources when application exits"""
         try:
-            if self.hotkey_manager:
-                self.hotkey_manager.stop_listening()
             self.logger.info("Application cleanup completed")
         except Exception as e:
             self.logger.error(f"Error during cleanup: {e}")

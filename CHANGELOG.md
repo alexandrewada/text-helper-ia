@@ -2,7 +2,7 @@
 
 Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 
-## [2.0.0] - 2024-01-XX
+## [2.0.0] - 2024-12-XX
 
 ### ✨ Adicionado
 - **Novas funcionalidades**:
@@ -17,8 +17,8 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 - **Interface moderna**:
   - Componentes UI organizados (`src/ui/`)
   - Janela principal redesenhada (`main_window.py`)
-  - Menu flutuante aprimorado (`floating_menu.py`)
   - Diálogos modernos (`dialogs.py`)
+  - Interface centralizada com acesso rápido às funcionalidades
 - **Sistema de testes**:
   - Testes unitários para componentes principais
   - Executor de testes automatizado (`run_tests.py`)
@@ -62,6 +62,11 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
   - Separação clara de responsabilidades
   - Padrões de design implementados
   - Código mais testável e manutenível
+- **Remoção de funcionalidades**:
+  - Removido sistema de atalhos globais (`linux_hotkey.py`)
+  - Removido menu flutuante (`floating_menu.py`)
+  - Removido script de configuração de atalhos (`setup_shortcuts.sh`)
+  - Simplificada interface para janela principal
 
 ### 📚 Documentação
 - README atualizado com novas funcionalidades

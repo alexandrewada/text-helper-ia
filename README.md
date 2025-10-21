@@ -7,7 +7,6 @@ Um aplicativo Python avançado que oferece **14 funcionalidades** de processamen
 ### ✨ **Novas Funcionalidades**
 - **🔍 Analisar**: Fornece insights sobre tom, estrutura e clareza do texto
 - **🔄 Reescrever**: Reescreve textos com abordagem diferente e mais envolvente
-- **⌨️ Atalhos de Teclado**: Sistema completo de atalhos para todas as operações
 - **🚀 Auto-substituição**: Substitui automaticamente texto selecionado
 
 ### 🏗️ **Arquitetura Melhorada**
@@ -15,13 +14,12 @@ Um aplicativo Python avançado que oferece **14 funcionalidades** de processamen
 - **Tratamento de Erros**: Sistema robusto de tratamento de erros e validações
 - **Logging Avançado**: Sistema de logs com rotação automática e diferentes níveis
 - **Configuração Flexível**: Sistema de configuração mais robusto e extensível
-- **Sistema de Hotkeys**: Gerenciador de atalhos com suporte a múltiplas operações
 
 ### 🎨 **Interface Modernizada**
 - **Design Atualizado**: Interface mais moderna com cores e estilos aprimorados
 - **Melhor UX**: Diálogos mais informativos e responsivos
 - **Animações**: Loading animations e feedback visual melhorados
-- **Interface Simplificada**: Removido menu flutuante, foco na janela principal
+- **Interface Simplificada**: Interface principal com acesso rápido às funcionalidades
 - **Responsividade**: Interface que se adapta melhor a diferentes tamanhos de tela
 
 ### ⚡ **Performance e Qualidade**
@@ -56,9 +54,9 @@ Um aplicativo Python avançado que oferece **14 funcionalidades** de processamen
 
 ## 🎨 Interface Moderna
 
-- **Menu Flutuante**: Sempre visível em cima de outras janelas
-- **Arrastável**: Pode ser movido para qualquer posição
-- **Organizado por Categorias**: Interface intuitiva com scroll
+- **Janela Principal**: Interface centralizada com acesso rápido a todas as funcionalidades
+- **Botões de Acesso Rápido**: Acesso direto às 8 funcionalidades mais usadas
+- **Instruções Integradas**: Guia completo de uso na própria interface
 - **Loading Animado**: Feedback visual durante processamento
 - **Diálogos Ricos**: Comparação entre texto original e resultado
 - **Captura Inteligente**: Prioriza texto selecionado sobre clipboard
@@ -88,7 +86,8 @@ Um aplicativo Python avançado que oferece **14 funcionalidades** de processamen
 pip3 install -r requirements.txt
 
 # Tornar o script executável
-chmod +x text_shortener.py
+chmod +x text_helper_ai.py
+chmod +x run_text_helper_ai.sh
 ```
 
 ## Configuração
@@ -124,40 +123,18 @@ Isso abrirá uma interface gráfica onde você pode:
 
 **Opção A - Texto Selecionado (Recomendado):**
 1. **Selecione** o texto que deseja processar em qualquer aplicativo
-2. **Use atalho** ou clique na função desejada na interface
+2. **Clique** na função desejada na interface principal
 3. **Aguarde** o processamento com feedback visual
 4. **Texto é substituído** automaticamente
 
 **Opção B - Clipboard:**
 1. **Copie** o texto (Ctrl+C) em qualquer aplicativo
-2. **Use atalho** ou clique na função desejada na interface
+2. **Clique** na função desejada na interface principal
 3. **Aguarde** o processamento com feedback visual
 4. **Cole** o resultado onde quiser (Ctrl+V)
 
-### 3. Atalhos de Teclado
 
-```bash
-# Encurtar texto selecionado
-python3 text_helper_shortcuts.py shorten
-
-# Melhorar texto selecionado
-python3 text_helper_shortcuts.py improve
-
-# Corrigir ortografia
-python3 text_helper_shortcuts.py spellcheck
-
-# Ver todas as opções
-python3 text_helper_shortcuts.py help
-```
-
-### 4. Configurar Atalhos do Sistema
-
-```bash
-# Configurar atalhos globais
-./setup_shortcuts.sh
-```
-
-### 4. Funcionalidades Disponíveis
+### 3. Funcionalidades Disponíveis
 
 - **📝 Encurtar**: Para textos longos
 - **✨ Melhorar**: Para textos mal estruturados
@@ -171,7 +148,7 @@ python3 text_helper_shortcuts.py help
 
 ## Configurações
 
-O arquivo de configuração é salvo em `~/.text_shortener_config.ini`:
+O arquivo de configuração é salvo em `~/.text_helper_ai_config.ini`:
 
 ```ini
 [DEFAULT]
@@ -188,17 +165,17 @@ max_tokens = 150
 
 ## Logs
 
-Os logs são salvos em `~/.text_shortener.log` e também exibidos no terminal.
+Os logs são salvos em `~/.text_helper_ai.log` e também exibidos no terminal.
 
 ## Solução de Problemas
 
 ### Erro: "OpenAI client not configured"
-- Execute `./run_text_shortener.sh --config` para configurar sua API key
+- Execute `./run_text_helper_ai.sh --config` para configurar sua API key
 
-### Atalho não funciona
+### Interface não responde
 - Certifique-se de que o aplicativo está rodando
-- Verifique se não há conflitos com outros atalhos do sistema
-- Teste em diferentes aplicativos
+- Verifique se a janela principal está visível
+- Teste selecionando texto antes de usar as funcionalidades
 
 ### Erro de API
 - Verifique se sua chave de API está correta
@@ -221,7 +198,6 @@ text-helper-ia/
 │   └── ui/                # Interface do usuário
 │       ├── __init__.py
 │       ├── main_window.py # Janela principal
-│       ├── floating_menu.py # Menu flutuante
 │       └── dialogs.py     # Diálogos da interface
 ├── tests/                 # Testes unitários
 │   ├── __init__.py
@@ -236,7 +212,6 @@ text-helper-ia/
 
 ### Dependências
 
-- `pynput`: Captura de atalhos globais
 - `openai`: Integração com API do ChatGPT
 - `pyperclip`: Manipulação do clipboard
 - `tkinter`: Interface gráfica (incluído no Python)
@@ -272,8 +247,6 @@ theme = light
 [UI]
 window_width = 600
 window_height = 500
-floating_menu_width = 250
-floating_menu_height = 400
 auto_close_delay = 10
 
 [LOGGING]

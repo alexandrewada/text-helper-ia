@@ -71,8 +71,6 @@ class TestConfig(unittest.TestCase):
         
         self.assertIn('window_width', ui_config)
         self.assertIn('window_height', ui_config)
-        self.assertIn('floating_menu_width', ui_config)
-        self.assertIn('floating_menu_height', ui_config)
         self.assertIn('auto_copy', ui_config)
         self.assertIn('show_notifications', ui_config)
         self.assertIn('theme', ui_config)

@@ -38,7 +38,7 @@ cat > "$DESKTOP_ENTRY" << EOF
 Version=1.0
 Type=Application
 Name=Text Helper AI
-Comment=AI-powered text processing suite with 12 functions using ChatGPT
+Comment=AI-powered text processing suite with 14 functions using ChatGPT
 Exec=$(pwd)/run_text_helper_ai.sh
 Icon=accessories-text-editor
 Terminal=false
@@ -51,14 +51,6 @@ echo ""
 echo "Usage:"
 echo "1. Run './run_text_helper_ai.sh --config' to configure your OpenAI API key"
 echo "2. Run './run_text_helper_ai.sh' to start the application"
-echo "3. Select text or copy (Ctrl+C), then use the floating menu to process it"
+echo "3. Select text or copy (Ctrl+C), then use the interface to process it"
 echo ""
-echo "The application offers 14 text processing functions with keyboard shortcuts."
-echo ""
-echo "Setting up keyboard shortcuts..."
-if [ -f "setup_shortcuts.sh" ]; then
-    chmod +x setup_shortcuts.sh
-    ./setup_shortcuts.sh
-else
-    echo "Shortcuts setup script not found. You can set up shortcuts manually later."
-fi
+echo "The application offers 14 text processing functions with a modern interface."
