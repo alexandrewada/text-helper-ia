@@ -1,5 +1,5 @@
 """
-AI client for OpenAI integration
+IA client for OpenAI integration
 """
 import asyncio
 from typing import Dict, Optional, Any

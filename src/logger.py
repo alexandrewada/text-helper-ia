@@ -1,5 +1,5 @@
 """
-Logging configuration for Text Helper AI
+Logging configuration for Text Helper IA
 """
 import logging
 import logging.handlers
@@ -21,7 +21,7 @@ class Logger:
         logging_config = self.config.get_logging_config()
         
         # Create logger
-        self.logger = logging.getLogger('text_helper_ai')
+        self.logger = logging.getLogger('text_helper_ia')
         self.logger.setLevel(getattr(logging, logging_config['level']))
         
         # Clear existing handlers

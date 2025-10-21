@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test runner for Text Helper AI
+Test runner for Text Helper IA
 """
 import unittest
 import sys

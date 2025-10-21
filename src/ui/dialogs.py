@@ -1,5 +1,5 @@
 """
-UI Dialogs for Text Helper AI
+UI Dialogs for Text Helper IA
 """
 import tkinter as tk
 from tkinter import messagebox, simpledialog, ttk
@@ -454,7 +454,7 @@ class ConfigDialog:
         self.on_save = on_save
         self.logger = logger
         self.dialog = tk.Toplevel(parent)
-        self.dialog.title("⚙️ Configurações - Text Helper AI")
+        self.dialog.title("⚙️ Configurações - Text Helper IA")
         self.dialog.geometry("500x600")
         self.dialog.resizable(True, True)
         self.dialog.transient(parent)

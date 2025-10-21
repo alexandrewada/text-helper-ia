@@ -1,5 +1,5 @@
 """
-Main Window for Text Helper AI
+Main Window for Text Helper IA
 """
 import tkinter as tk
 from tkinter import ttk, messagebox
@@ -26,14 +26,14 @@ class MainWindow:
         """Setup main window properties"""
         ui_config = self.config.get_ui_config()
         
-        self.root.title("Text Helper AI - Suíte Completa de Processamento de Texto")
-        self.root.geometry(f"{ui_config['window_width']}x{ui_config['window_height']}")
+        self.root.title("Text Helper IA")
+        self.root.geometry("600x400")
         self.root.configure(bg='#f8f9fa')
         
         # Center window on screen
         self.root.update_idletasks()
-        x = (self.root.winfo_screenwidth() // 2) - (ui_config['window_width'] // 2)
-        y = (self.root.winfo_screenheight() // 2) - (ui_config['window_height'] // 2)
+        x = (self.root.winfo_screenwidth() // 2) - 300
+        y = (self.root.winfo_screenheight() // 2) - 200
         self.root.geometry(f"+{x}+{y}")
         
         # Set window icon (if available)
@@ -50,9 +50,6 @@ class MainWindow:
         
         # Header section
         self._create_header(main_container)
-        
-        # Instructions section
-        self._create_instructions(main_container)
         
         # Quick access buttons
         self._create_quick_access(main_container)
@@ -82,7 +79,7 @@ class MainWindow:
         
         title_label = tk.Label(
             title_frame, 
-            text="Text Helper AI", 
+            text="Text Helper IA", 
             font=("Arial", 20, "bold"), 
             bg='#f8f9fa',
             fg='#343a40'
@@ -92,100 +89,13 @@ class MainWindow:
         # Subtitle
         subtitle_label = tk.Label(
             header_frame, 
-            text="Suíte completa de processamento de texto com IA", 
+            text="Processamento de texto com IA", 
             font=("Arial", 12), 
             bg='#f8f9fa',
             fg='#6c757d'
         )
         subtitle_label.pack(pady=(5, 0))
     
-    def _create_instructions(self, parent):
-        """Create instructions section"""
-        instructions_frame = tk.Frame(parent, bg='#f8f9fa')
-        instructions_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 20))
-        
-        # Instructions title
-        instructions_title = tk.Label(
-            instructions_frame, 
-            text="📋 Instruções de Uso", 
-            font=("Arial", 14, "bold"), 
-            bg='#f8f9fa',
-            fg='#343a40'
-        )
-        instructions_title.pack(anchor=tk.W, pady=(0, 10))
-        
-        # Instructions text with scrollbar
-        text_frame = tk.Frame(instructions_frame, bg='#f8f9fa')
-        text_frame.pack(fill=tk.BOTH, expand=True)
-        
-        instructions_text = tk.Text(
-            text_frame, 
-            height=12, 
-            wrap=tk.WORD, 
-            bg='#ffffff', 
-            relief=tk.SUNKEN, 
-            bd=1,
-            font=("Arial", 10),
-            padx=15,
-            pady=15
-        )
-        scrollbar = tk.Scrollbar(text_frame, orient="vertical", command=instructions_text.yview)
-        instructions_text.configure(yscrollcommand=scrollbar.set)
-        
-        instructions_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        
-        # Instructions content
-        instructions_content = """
-🚀 COMO USAR:
-
-1. SELECIONE o texto que você quer processar OU COPIE (Ctrl+C)
-2. CLIQUE em "Mostrar Menu Flutuante" para abrir o menu sempre visível
-3. ARRASTE o menu flutuante para qualquer lugar da tela
-4. ESCOLHA uma das opções organizadas por categoria
-5. O texto processado será mostrado e copiado automaticamente
-6. COLE o texto processado onde você quiser (Ctrl+V)
-
-⌨️ ATALHO ALTERNATIVO: Use o comando de arquivo trigger
-💡 DICA: O sistema prioriza texto selecionado sobre a área de transferência!
-
-📝 FUNCIONALIDADES DISPONÍVEIS:
-
-📝 BÁSICO:
-• Encurtar: Reduz o texto mantendo informações essenciais
-• Melhorar: Melhora clareza e estrutura do texto
-• Resumir: Cria resumos concisos de textos longos
-• Expandir: Adiciona detalhes e exemplos ao texto
-
-🎭 ESTILO:
-• Informal: Transforma em linguagem casual e descontraída
-• Formal: Transforma em linguagem profissional e culta
-• Criativo: Reescreve de forma mais envolvente e dinâmica
-• Técnico: Reescreve com terminologia técnica e precisa
-
-🌍 TRADUÇÃO:
-• → Inglês: Traduz do português para inglês
-• → Português: Traduz do inglês para português
-
-✨ EXTRAS:
-• Corrigir: Corrige erros ortográficos e gramaticais
-• Emojis: Adiciona emojis relevantes ao texto
-• Analisar: Fornece insights sobre o texto
-• Reescrever: Reescreve com abordagem diferente
-
-🎨 CARACTERÍSTICAS DO MENU FLUTUANTE:
-• Sempre visível em cima de outras janelas
-• Arrastável para qualquer posição
-• Pode ser minimizado ou fechado
-• Organizado em categorias com scroll
-• Acesso rápido a 14 funcionalidades
-• Interface moderna e responsiva
-
-💡 DICA: O menu flutuante fica sempre acessível em qualquer aplicativo!
-        """
-        
-        instructions_text.insert(tk.END, instructions_content)
-        instructions_text.config(state=tk.DISABLED)
     
     def _create_quick_access(self, parent):
         """Create quick access buttons section"""
@@ -195,7 +105,7 @@ class MainWindow:
         # Quick access title
         quick_title = tk.Label(
             quick_frame, 
-            text="⚡ Acesso Rápido", 
+            text="⚡ Ferramentas", 
             font=("Arial", 12, "bold"), 
             bg='#f8f9fa',
             fg='#343a40'
@@ -292,7 +202,7 @@ class MainWindow:
         # Status text
         status_text = tk.Label(
             status_frame, 
-            text="Status: Pronto para usar - Menu flutuante sempre acessível!", 
+            text="Status: Pronto para usar", 
             font=("Arial", 10), 
             bg='#f8f9fa',
             fg='#28a745'

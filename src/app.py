@@ -1,5 +1,5 @@
 """
-Main Application for Text Helper AI
+Main Application for Text Helper IA
 """
 import sys
 import threading
@@ -7,7 +7,7 @@ import asyncio
 from typing import Optional
 from .config import Config
 from .logger import Logger
-from .ai_client import AIClient
+from .ia_client import AIClient
 from .text_processor import TextProcessor
 from .ui.main_window import MainWindow
 from .ui.dialogs import LoadingDialog, SuccessDialog, ErrorDialog, ConfigDialog
@@ -31,7 +31,7 @@ class TextHelperAI:
         # Application state
         self.is_processing = False
         
-        self.logger.info("Text Helper AI application initialized")
+        self.logger.info("Text Helper IA application initialized")
     
     def is_configured(self) -> bool:
         """Check if the application is properly configured"""
@@ -47,7 +47,7 @@ class TextHelperAI:
         def on_save():
             """Callback when configuration is saved"""
             self.ai_client._setup_clients()
-            self.logger.info("Configuration updated and AI client reinitialized")
+            self.logger.info("Configuration updated and IA client reinitialized")
         
         config_dialog = ConfigDialog(parent, self.config, on_save, self.logger)
     

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Text Helper AI - Suíte completa de processamento de texto com IA
+Text Helper IA - Suíte completa de processamento de texto com IA
 Versão melhorada com arquitetura modular e interface moderna
 """
 

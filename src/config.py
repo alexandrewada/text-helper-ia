@@ -1,5 +1,5 @@
 """
-Configuration management for Text Helper AI
+Configuration management for Text Helper IA
 """
 import os
 import configparser
@@ -10,7 +10,7 @@ class Config:
     """Configuration manager for the application"""
     
     def __init__(self, config_file: Optional[str] = None):
-        self.config_file = config_file or os.path.expanduser("~/.text_helper_ai_config.ini")
+        self.config_file = config_file or os.path.expanduser("~/.text_helper_ia_config.ini")
         self.config = configparser.ConfigParser()
         self.load_config()
     
@@ -44,7 +44,7 @@ class Config:
         
         self.config['LOGGING'] = {
             'level': 'INFO',
-            'file': os.path.expanduser('~/.text_helper_ai.log'),
+            'file': os.path.expanduser('~/.text_helper_ia.log'),
             'max_size': '10485760',  # 10MB
             'backup_count': '3'
         }
@@ -90,7 +90,7 @@ class Config:
         """Get logging configuration"""
         return {
             'level': self.get('LOGGING', 'level', 'INFO'),
-            'file': self.get('LOGGING', 'file', os.path.expanduser('~/.text_helper_ai.log')),
+            'file': self.get('LOGGING', 'file', os.path.expanduser('~/.text_helper_ia.log')),
             'max_size': int(self.get('LOGGING', 'max_size', '10485760')),
             'backup_count': int(self.get('LOGGING', 'backup_count', '3'))
         }
