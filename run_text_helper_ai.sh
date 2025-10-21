@@ -8,4 +8,4 @@ cd "$(dirname "$0")"
 source text_helper_ai_env/bin/activate
 
 # Executar o aplicativo
-python text_helper_ai.py "$@"
+python3 text_helper_ai.py "$@"

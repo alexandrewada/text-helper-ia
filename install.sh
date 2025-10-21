@@ -53,4 +53,12 @@ echo "1. Run './run_text_helper_ai.sh --config' to configure your OpenAI API key
 echo "2. Run './run_text_helper_ai.sh' to start the application"
 echo "3. Select text or copy (Ctrl+C), then use the floating menu to process it"
 echo ""
-echo "The application offers 12 text processing functions with a modern floating menu interface."
+echo "The application offers 14 text processing functions with keyboard shortcuts."
+echo ""
+echo "Setting up keyboard shortcuts..."
+if [ -f "setup_shortcuts.sh" ]; then
+    chmod +x setup_shortcuts.sh
+    ./setup_shortcuts.sh
+else
+    echo "Shortcuts setup script not found. You can set up shortcuts manually later."
+fi
