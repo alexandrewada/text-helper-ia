@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Text Helper IA
+Comment=Assistente de processamento de texto com Inteligência Artificial
+Exec=/home/alexandrewada/text-helper-ia/launcher.sh
+Icon=/home/alexandrewada/text-helper-ia/icon.png
+Terminal=false
+StartupNotify=true
+Categories=Office;TextEditor;Utility;
+Keywords=text;ai;openai;processamento;assistente;
+StartupWMClass=TextHelperIA
+MimeType=text/plain;

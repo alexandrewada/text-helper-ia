@@ -39,17 +39,24 @@ Uma suíte completa de processamento de texto com inteligência artificial, ofer
 
 ## 🔧 Instalação
 
-### Instalação Automática
+### Instalação como Aplicativo do Sistema (Recomendado)
 
 ```bash
 # Clone o repositório
 git clone https://github.com/seu-usuario/text-helper-ia.git
 cd text-helper-ia
 
-# Execute o script de instalação
-chmod +x install.sh
-./install.sh
+# Execute o script de instalação do aplicativo
+chmod +x install_app.sh
+./install_app.sh
 ```
+
+Este método irá:
+- Instalar todas as dependências do sistema
+- Configurar o ambiente virtual Python
+- Criar um atalho no menu de aplicações
+- Criar um atalho na área de trabalho (se disponível)
+- Integrar o aplicativo com o sistema operacional
 
 ### Instalação Manual
 
@@ -64,6 +71,13 @@ source text_helper_ia_env/bin/activate
 
 # Instale as dependências
 pip install -r requirements.txt
+```
+
+### Desinstalação
+
+```bash
+# Para remover o aplicativo do sistema
+./uninstall_app.sh
 ```
 
 ## ⚙️ Configuração
@@ -92,12 +106,15 @@ Ou use a interface gráfica:
 
 ## 🚀 Como Usar
 
-### Método 1: Interface Gráfica
+### Método 1: Menu de Aplicações (Recomendado)
 
-```bash
-# Execute o aplicativo
-python3 text_helper_ia.py
-```
+Após a instalação, você pode executar o aplicativo de três formas:
+
+1. **Menu de Aplicações**: Procure por "Text Helper IA" no menu de aplicações do seu sistema
+2. **Atalho da Área de Trabalho**: Clique no ícone na área de trabalho
+3. **Linha de Comando**: Execute `./launcher.sh` no diretório do projeto
+
+### Método 2: Interface Gráfica
 
 1. **Selecione texto** em qualquer aplicativo
 2. **Clique na função desejada** na interface
@@ -105,7 +122,7 @@ python3 text_helper_ia.py
 4. **Visualize o resultado** no diálogo de sucesso
 5. **O texto processado** será copiado automaticamente ou substituído
 
-### Método 2: Linha de Comando
+### Método 3: Linha de Comando
 
 ```bash
 # Configurar
@@ -130,7 +147,11 @@ text-helper-ia/
 │       └── dialogs.py     # Diálogos modais
 ├── tests/                 # Testes unitários
 ├── requirements.txt       # Dependências Python
-├── install.sh            # Script de instalação
+├── install_app.sh        # Script de instalação do aplicativo
+├── uninstall_app.sh      # Script de desinstalação
+├── launcher.sh           # Script launcher para execução
+├── text-helper-ia.desktop # Arquivo .desktop para integração
+├── icon.png              # Ícone do aplicativo
 ├── text_helper_ia.py     # Ponto de entrada
 └── README.md             # Este arquivo
 ```
