@@ -302,7 +302,7 @@ class TextHelperAI:
             try:
                 # Small delay to ensure dialog is fully initialized
                 import time
-                time.sleep(0.1)
+                time.sleep(0.05)
                 
                 # Try to get clipboard content safely
                 import pyperclip
@@ -314,6 +314,9 @@ class TextHelperAI:
                     if not current_content:
                         text_widget.insert(tk.END, clipboard_content.strip())
                         self.logger.info("Auto-pasted clipboard content safely")
+                        
+                        # Auto-click process button after paste for better productivity
+                        dialog.after(100, lambda: self._close_simple_dialog(dialog, text_widget))
                     else:
                         self.logger.info("Text widget not empty, skipping auto-paste")
                 else:
@@ -323,7 +326,7 @@ class TextHelperAI:
                 self.logger.warning(f"Could not auto-paste clipboard safely: {e}")
         
         # Schedule auto-paste with delay to prevent conflicts
-        dialog.after(200, safe_auto_paste)
+        dialog.after(50, safe_auto_paste)
         
         # Focus on text widget
         text_widget.focus_set()
@@ -371,7 +374,7 @@ class TextHelperAI:
         ok_btn = tk.Button(
             buttons_frame, 
             text="✅ Processar", 
-            command=lambda: self._close_dialog(dialog, text_widget),
+            command=lambda: self._close_simple_dialog(dialog, text_widget),
             bg='#28a745', 
             fg='white', 
             font=("Arial", 10, "bold"),
@@ -502,7 +505,7 @@ class TextHelperAI:
             try:
                 # Small delay to ensure dialog is fully initialized
                 import time
-                time.sleep(0.1)
+                time.sleep(0.05)
                 
                 # Try to get clipboard content safely
                 import pyperclip
@@ -514,6 +517,9 @@ class TextHelperAI:
                     if not current_content:
                         text_widget.insert(tk.END, clipboard_content.strip())
                         self.logger.info("Auto-pasted clipboard content safely")
+                        
+                        # Auto-click process button after paste for better productivity
+                        dialog.after(100, lambda: self._close_simple_dialog(dialog, text_widget))
                     else:
                         self.logger.info("Text widget not empty, skipping auto-paste")
                 else:
@@ -523,7 +529,7 @@ class TextHelperAI:
                 self.logger.warning(f"Could not auto-paste clipboard safely: {e}")
         
         # Schedule auto-paste with delay to prevent conflicts
-        dialog.after(200, safe_auto_paste)
+        dialog.after(50, safe_auto_paste)
         
         # Focus on text widget
         text_widget.focus_set()
@@ -805,22 +811,14 @@ class TextHelperAI:
             
             operation_name = operation_names.get(operation_type, operation_type)
             
-            # Show system notification
-            notification.notify(
-                title=f"✅ Texto {operation_name} com Sucesso!",
-                message=f"Resultado: {display_text}",
-                app_name="Text Helper IA",
-                timeout=10,  # 10 seconds
-                toast=False
-            )
-            
-            # Also copy to clipboard automatically
+            # Copy to clipboard automatically
             import pyperclip
             pyperclip.copy(processed_text)
             
-            # Update status in main window
+            # Minimize main window for better productivity (no dialog needed)
             if self.main_window:
-                self.main_window.update_status(f"Texto {operation_name}! Resultado copiado para clipboard e mostrado em notificação.", '#28a745')
+                self.main_window.root.iconify()  # Minimize the window
+                self.main_window.update_status(f"Texto {operation_name}! Resultado copiado para clipboard.", '#28a745')
             
             self.logger.info(f"Result notification shown for operation: {operation_type}")
             
@@ -859,14 +857,9 @@ class TextHelperAI:
             import pyperclip
             pyperclip.copy(processed_text)
             
-            # Show messagebox
-            messagebox.showinfo(
-                f"✅ Texto {operation_name}!",
-                f"Resultado copiado para clipboard:\n\n{display_text}\n\n(Use Ctrl+V para colar)"
-            )
-            
-            # Update status
+            # Minimize main window for better productivity (no dialog needed)
             if self.main_window:
+                self.main_window.root.iconify()  # Minimize the window
                 self.main_window.update_status(f"Texto {operation_name}! Resultado copiado para clipboard.", '#28a745')
             
             self.logger.info(f"Fallback notification shown for operation: {operation_type}")
