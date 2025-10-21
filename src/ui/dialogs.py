@@ -21,6 +21,10 @@ class LoadingDialog:
         self.dialog.transient(parent)
         self.dialog.grab_set()
         
+        # Animation control
+        self._animation_running = True
+        self._animation_id = None
+        
         # Center the dialog
         self._center_dialog()
         
@@ -29,6 +33,9 @@ class LoadingDialog:
         
         self.setup_ui(message)
         self._animate_loading()
+        
+        # Handle window close event
+        self.dialog.protocol("WM_DELETE_WINDOW", self.close)
         
     def _center_dialog(self):
         """Center the dialog on parent window"""
@@ -94,6 +101,9 @@ class LoadingDialog:
         
     def _animate_loading(self):
         """Animate the loading icon with more icons"""
+        if not self._animation_running:
+            return
+            
         icons = ["⏳", "⏰", "🔄", "⚡", "✨", "🌟", "💫", "🚀"]
         if hasattr(self, 'current_icon'):
             self.current_icon = (self.current_icon + 1) % len(icons)
@@ -101,7 +111,10 @@ class LoadingDialog:
             self.current_icon = 0
             
         self.loading_label.config(text=icons[self.current_icon])
-        self.dialog.after(400, self._animate_loading)
+        
+        # Only schedule next animation if still running
+        if self._animation_running:
+            self._animation_id = self.dialog.after(400, self._animate_loading)
         
     def update_status(self, message: str):
         """Update the status message"""
@@ -112,7 +125,16 @@ class LoadingDialog:
         
     def close(self):
         """Close the loading dialog"""
+        # Stop animation
+        self._animation_running = False
+        if self._animation_id:
+            self.dialog.after_cancel(self._animation_id)
+            self._animation_id = None
+        
+        # Stop progress bar
         self.progress.stop()
+        
+        # Destroy dialog
         self.dialog.destroy()
 
 
@@ -126,13 +148,22 @@ class SuccessDialog:
         self.logger = logger
         self.dialog = tk.Toplevel(parent)
         self.dialog.title(f"✅ {operation_name}")
-        self.dialog.geometry("600x500")
+        
+        # Make responsive - calculate size based on screen size
+        screen_width = self.dialog.winfo_screenwidth()
+        screen_height = self.dialog.winfo_screenheight()
+        
+        # Use 70% of screen width and 60% of screen height, with minimums
+        dialog_width = max(700, int(screen_width * 0.7))
+        dialog_height = max(500, int(screen_height * 0.6))
+        
+        self.dialog.geometry(f"{dialog_width}x{dialog_height}")
         self.dialog.resizable(True, True)
         self.dialog.transient(parent)
         self.dialog.grab_set()
         
         # Center the dialog
-        self._center_dialog()
+        self._center_dialog(dialog_width, dialog_height)
         
         # Make it always on top
         self.dialog.attributes('-topmost', True)
@@ -140,18 +171,24 @@ class SuccessDialog:
         self.setup_ui(operation_name, original_text, processed_text)
         
         # Auto-close after configured delay
-        auto_close_delay = self.config.get('UI', 'auto_close_delay', '10')
-        self.dialog.after(int(auto_close_delay) * 1000, self.close)
+        try:
+            auto_close_delay = self.config.get('UI', 'auto_close_delay', '10')
+            delay_seconds = int(auto_close_delay)
+            if delay_seconds > 0:
+                self.dialog.after(delay_seconds * 1000, self.close)
+        except (ValueError, TypeError):
+            # If auto_close_delay is invalid, don't auto-close
+            pass
         
-    def _center_dialog(self):
+    def _center_dialog(self, width: int, height: int):
         """Center the dialog on parent window"""
         self.dialog.update_idletasks()
-        x = (self.dialog.winfo_screenwidth() // 2) - (600 // 2)
-        y = (self.dialog.winfo_screenheight() // 2) - (500 // 2)
-        self.dialog.geometry(f"600x500+{x}+{y}")
+        x = (self.dialog.winfo_screenwidth() // 2) - (width // 2)
+        y = (self.dialog.winfo_screenheight() // 2) - (height // 2)
+        self.dialog.geometry(f"{width}x{height}+{x}+{y}")
         
     def setup_ui(self, operation_name: str, original_text: str, processed_text: str):
-        """Setup the success dialog UI"""
+        """Setup the success dialog UI with side-by-side layout"""
         # Main frame with modern styling
         main_frame = tk.Frame(self.dialog, bg='#f8f9fa', relief=tk.RAISED, bd=2)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
@@ -177,36 +214,42 @@ class SuccessDialog:
         )
         title_text.pack(side=tk.LEFT, padx=10)
         
-        # Notebook for tabs with modern styling
-        style = ttk.Style()
-        style.theme_use('clam')
-        style.configure("Custom.TNotebook", background='#f8f9fa')
-        style.configure("Custom.TNotebook.Tab", background='#e9ecef', padding=[20, 10])
-        style.map("Custom.TNotebook.Tab", background=[('selected', '#007bff')])
+        # Side-by-side content frame
+        content_frame = tk.Frame(main_frame, bg='#f8f9fa')
+        content_frame.pack(fill=tk.BOTH, expand=True, pady=10)
         
-        notebook = ttk.Notebook(main_frame, style="Custom.TNotebook")
-        notebook.pack(fill=tk.BOTH, expand=True, pady=10)
+        # Left side - Original text
+        left_frame = tk.Frame(content_frame, bg='#f8f9fa')
+        left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
         
-        # Original text tab
-        original_frame = tk.Frame(notebook, bg='#f8f9fa')
-        notebook.add(original_frame, text="📄 Original")
+        # Original text header
+        original_header = tk.Frame(left_frame, bg='#f8f9fa')
+        original_header.pack(fill=tk.X, pady=(0, 5))
+        
+        original_icon = tk.Label(
+            original_header, 
+            text="📄", 
+            font=("Arial", 16), 
+            bg='#f8f9fa'
+        )
+        original_icon.pack(side=tk.LEFT)
         
         original_label = tk.Label(
-            original_frame, 
-            text="Texto Original:", 
-            font=("Arial", 10, "bold"), 
+            original_header, 
+            text="Texto Original", 
+            font=("Arial", 12, "bold"), 
             bg='#f8f9fa',
             fg='#495057'
         )
-        original_label.pack(anchor=tk.W, pady=(10, 5), padx=10)
+        original_label.pack(side=tk.LEFT, padx=(5, 0))
         
-        # Text widget with scrollbar
-        text_frame = tk.Frame(original_frame, bg='#f8f9fa')
-        text_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 10))
+        # Original text widget with scrollbar
+        original_text_frame = tk.Frame(left_frame, bg='#f8f9fa')
+        original_text_frame.pack(fill=tk.BOTH, expand=True)
         
         original_text_widget = tk.Text(
-            text_frame, 
-            height=8, 
+            original_text_frame, 
+            height=12, 
             wrap=tk.WORD, 
             bg='#ffffff', 
             relief=tk.SUNKEN, 
@@ -215,35 +258,90 @@ class SuccessDialog:
             padx=10,
             pady=10
         )
-        original_scrollbar = tk.Scrollbar(text_frame, orient="vertical", command=original_text_widget.yview)
+        original_scrollbar = tk.Scrollbar(original_text_frame, orient="vertical", command=original_text_widget.yview)
         original_text_widget.configure(yscrollcommand=original_scrollbar.set)
         
         original_text_widget.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         original_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         
         original_text_widget.insert(tk.END, original_text)
-        original_text_widget.config(state=tk.DISABLED)
+        # Keep it in normal state for selection but prevent editing
+        original_text_widget.config(state=tk.NORMAL)
         
-        # Processed text tab
-        processed_frame = tk.Frame(notebook, bg='#f8f9fa')
-        notebook.add(processed_frame, text="✨ Resultado")
+        # Add click to select all functionality for original text
+        def select_all_original(event):
+            original_text_widget.tag_add(tk.SEL, "1.0", tk.END)
+            original_text_widget.mark_set(tk.INSERT, "1.0")
+            original_text_widget.see(tk.INSERT)
+            return 'break'
+        
+        original_text_widget.bind("<Button-1>", select_all_original)
+        
+        # Add Ctrl+A support
+        def select_all_original_ctrl_a(event):
+            original_text_widget.tag_add(tk.SEL, "1.0", tk.END)
+            original_text_widget.mark_set(tk.INSERT, "1.0")
+            return 'break'
+        
+        original_text_widget.bind("<Control-a>", select_all_original_ctrl_a)
+        
+        # Prevent editing but allow selection
+        def prevent_edit_original(event):
+            if event.keysym in ['BackSpace', 'Delete', 'Return', 'space']:
+                return 'break'
+            if len(event.char) > 0 and ord(event.char) >= 32:
+                return 'break'
+        
+        original_text_widget.bind("<Key>", prevent_edit_original)
+        
+        # Add Ctrl+C support for easy copying
+        def copy_original_text(event):
+            try:
+                # Get selected text or all text
+                selected_text = original_text_widget.get(tk.SEL_FIRST, tk.SEL_LAST) if original_text_widget.tag_ranges(tk.SEL) else original_text_widget.get("1.0", tk.END).strip()
+                if selected_text:
+                    # Copy to system clipboard using tkinter's built-in method
+                    original_text_widget.clipboard_clear()
+                    original_text_widget.clipboard_append(selected_text)
+                    original_text_widget.update()
+            except:
+                pass
+            return 'break'
+        
+        original_text_widget.bind("<Control-c>", copy_original_text)
+        
+        # Right side - Processed text
+        right_frame = tk.Frame(content_frame, bg='#f8f9fa')
+        right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=(10, 0))
+        
+        # Processed text header
+        processed_header = tk.Frame(right_frame, bg='#f8f9fa')
+        processed_header.pack(fill=tk.X, pady=(0, 5))
+        
+        processed_icon = tk.Label(
+            processed_header, 
+            text="✨", 
+            font=("Arial", 16), 
+            bg='#f8f9fa'
+        )
+        processed_icon.pack(side=tk.LEFT)
         
         processed_label = tk.Label(
-            processed_frame, 
-            text="Texto Processado:", 
-            font=("Arial", 10, "bold"), 
+            processed_header, 
+            text="Texto Processado", 
+            font=("Arial", 12, "bold"), 
             bg='#f8f9fa',
-            fg='#495057'
+            fg='#28a745'
         )
-        processed_label.pack(anchor=tk.W, pady=(10, 5), padx=10)
+        processed_label.pack(side=tk.LEFT, padx=(5, 0))
         
-        # Text widget with scrollbar
-        processed_text_frame = tk.Frame(processed_frame, bg='#f8f9fa')
-        processed_text_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 10))
+        # Processed text widget with scrollbar
+        processed_text_frame = tk.Frame(right_frame, bg='#f8f9fa')
+        processed_text_frame.pack(fill=tk.BOTH, expand=True)
         
         processed_text_widget = tk.Text(
             processed_text_frame, 
-            height=8, 
+            height=12, 
             wrap=tk.WORD, 
             bg='#e8f5e8', 
             relief=tk.SUNKEN, 
@@ -259,17 +357,53 @@ class SuccessDialog:
         processed_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         
         processed_text_widget.insert(tk.END, processed_text)
-        processed_text_widget.config(state=tk.DISABLED)
+        # Keep it editable and selectable
+        
+        # Add click to select all functionality for processed text
+        def select_all_processed(event):
+            processed_text_widget.tag_add(tk.SEL, "1.0", tk.END)
+            processed_text_widget.mark_set(tk.INSERT, "1.0")
+            processed_text_widget.see(tk.INSERT)
+            return 'break'
+        
+        processed_text_widget.bind("<Button-1>", select_all_processed)
+        
+        # Add Ctrl+A support for processed text
+        def select_all_processed_ctrl_a(event):
+            processed_text_widget.tag_add(tk.SEL, "1.0", tk.END)
+            processed_text_widget.mark_set(tk.INSERT, "1.0")
+            return 'break'
+        
+        processed_text_widget.bind("<Control-a>", select_all_processed_ctrl_a)
+        
+        # Add Ctrl+C support for easy copying
+        def copy_processed_text(event):
+            try:
+                # Get selected text or all text
+                selected_text = processed_text_widget.get(tk.SEL_FIRST, tk.SEL_LAST) if processed_text_widget.tag_ranges(tk.SEL) else processed_text_widget.get("1.0", tk.END).strip()
+                if selected_text:
+                    # Copy to system clipboard using tkinter's built-in method
+                    processed_text_widget.clipboard_clear()
+                    processed_text_widget.clipboard_append(selected_text)
+                    processed_text_widget.update()
+            except:
+                pass
+            return 'break'
+        
+        processed_text_widget.bind("<Control-c>", copy_processed_text)
+        
+        # Store reference for copy functionality
+        self.processed_text_widget = processed_text_widget
         
         # Buttons frame
         buttons_frame = tk.Frame(main_frame, bg='#f8f9fa')
         buttons_frame.pack(fill=tk.X, pady=(15, 0))
         
-        # Copy button with modern styling
+        # Copy instructions button with modern styling
         copy_btn = tk.Button(
             buttons_frame, 
-            text="📋 Copiar Resultado", 
-            command=lambda: self.copy_to_clipboard(processed_text),
+            text="📋 Como Copiar", 
+            command=lambda: self.copy_to_clipboard(),
             bg='#28a745', 
             fg='white', 
             font=("Arial", 10, "bold"),
@@ -285,7 +419,7 @@ class SuccessDialog:
         save_btn = tk.Button(
             buttons_frame, 
             text="💾 Salvar", 
-            command=lambda: self.save_text(processed_text),
+            command=lambda: self.save_text(),
             bg='#17a2b8', 
             fg='white', 
             font=("Arial", 10, "bold"),
@@ -313,33 +447,36 @@ class SuccessDialog:
         )
         close_btn.pack(side=tk.RIGHT)
         
-    def copy_to_clipboard(self, text: str):
-        """Copy text to clipboard"""
-        try:
-            import pyperclip
-            pyperclip.copy(text)
-            messagebox.showinfo("Copiado!", "Texto copiado para a área de transferência!")
-            if self.logger:
-                self.logger.info("Text copied to clipboard from success dialog")
-        except Exception as e:
-            messagebox.showerror("Erro", f"Erro ao copiar texto: {e}")
-            if self.logger:
-                self.logger.error(f"Error copying text to clipboard: {e}")
+    def copy_to_clipboard(self, text: str = None):
+        """Show copy instructions"""
+        messagebox.showinfo(
+            "Como Copiar Texto", 
+            "Para copiar o texto:\n\n📄 Texto Original (esquerda):\n• Clique na caixa → seleciona tudo\n• Pressione Ctrl+C para copiar\n\n✨ Texto Processado (direita):\n• Clique na caixa → seleciona tudo\n• Pressione Ctrl+C para copiar\n• Ou edite antes de copiar\n\n💡 Dica: Use Ctrl+A para selecionar tudo se necessário"
+        )
+        if self.logger:
+            self.logger.info("Copy instructions shown")
     
-    def save_text(self, text: str):
+    def save_text(self, text: str = None):
         """Save text to file"""
         try:
             from tkinter import filedialog
-            filename = filedialog.asksaveasfilename(
-                defaultextension=".txt",
-                filetypes=[("Text files", "*.txt"), ("All files", "*.*")]
-            )
-            if filename:
-                with open(filename, 'w', encoding='utf-8') as f:
-                    f.write(text)
-                messagebox.showinfo("Salvo!", f"Texto salvo em: {filename}")
-                if self.logger:
-                    self.logger.info(f"Text saved to file: {filename}")
+            # If no text provided, get from the editable widget
+            if text is None and hasattr(self, 'processed_text_widget'):
+                text = self.processed_text_widget.get("1.0", tk.END).strip()
+            
+            if text:
+                filename = filedialog.asksaveasfilename(
+                    defaultextension=".txt",
+                    filetypes=[("Text files", "*.txt"), ("All files", "*.*")]
+                )
+                if filename:
+                    with open(filename, 'w', encoding='utf-8') as f:
+                        f.write(text)
+                    messagebox.showinfo("Salvo!", f"Texto salvo em: {filename}")
+                    if self.logger:
+                        self.logger.info(f"Text saved to file: {filename}")
+            else:
+                messagebox.showwarning("Aviso", "Nenhum texto para salvar!")
         except Exception as e:
             messagebox.showerror("Erro", f"Erro ao salvar arquivo: {e}")
             if self.logger:

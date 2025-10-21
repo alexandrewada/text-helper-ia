@@ -78,7 +78,7 @@ class AIClient:
         }
     
     def process_text(self, text: str, operation_type: str) -> str:
-        """Process text using OpenAI API"""
+        """Process text using OpenAI API with timeout protection"""
         if not self.is_configured():
             raise Exception("OpenAI client not configured. Please set up your API key.")
         
@@ -95,6 +95,7 @@ class AIClient:
             
             self.logger.info(f"Processing text with operation: {operation_type}")
             
+            # Create request with timeout
             response = self.client.chat.completions.create(
                 model=openai_config['model'],
                 messages=[
@@ -108,16 +109,31 @@ class AIClient:
                     }
                 ],
                 max_tokens=openai_config['max_tokens'],
-                temperature=openai_config['temperature']
+                temperature=openai_config['temperature'],
+                timeout=openai_config['timeout']  # Ensure timeout is applied
             )
+            
+            if not response.choices or not response.choices[0].message.content:
+                raise Exception("Empty response from OpenAI API")
             
             result = response.choices[0].message.content.strip()
             self.logger.info(f"Text processed successfully: {operation_type}")
             return result
             
         except Exception as e:
-            self.logger.error(f"Error processing text with OpenAI: {e}")
-            raise Exception(f"Failed to process text: {str(e)}")
+            error_msg = str(e)
+            if "timeout" in error_msg.lower():
+                self.logger.error(f"OpenAI API timeout: {e}")
+                raise Exception("Timeout ao processar texto. Tente novamente.")
+            elif "rate limit" in error_msg.lower():
+                self.logger.error(f"OpenAI API rate limit: {e}")
+                raise Exception("Limite de requisições excedido. Aguarde um momento e tente novamente.")
+            elif "authentication" in error_msg.lower() or "unauthorized" in error_msg.lower():
+                self.logger.error(f"OpenAI API authentication error: {e}")
+                raise Exception("Erro de autenticação. Verifique sua chave de API.")
+            else:
+                self.logger.error(f"Error processing text with OpenAI: {e}")
+                raise Exception(f"Falha ao processar texto: {error_msg}")
     
     async def process_text_async(self, text: str, operation_type: str) -> str:
         """Process text using OpenAI API asynchronously"""
