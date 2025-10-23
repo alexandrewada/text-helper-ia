@@ -25,49 +25,6 @@ fi
 echo "✅ Python 3 e pip3 encontrados"
 echo ""
 
-# Verificar e instalar dependências do sistema para notificações
-echo "🔍 Verificando dependências do sistema para notificações..."
-
-# Detectar distribuição Linux
-if command -v apt &> /dev/null; then
-    # Debian/Ubuntu
-    if ! dpkg -l | grep -q libnotify-bin; then
-        echo "📦 Instalando libnotify-bin..."
-        sudo apt update && sudo apt install -y libnotify-bin
-    fi
-    if ! dpkg -l | grep -q python3-dbus; then
-        echo "📦 Instalando python3-dbus..."
-        sudo apt install -y python3-dbus
-    fi
-elif command -v dnf &> /dev/null; then
-    # Fedora/CentOS
-    if ! rpm -q libnotify &> /dev/null; then
-        echo "📦 Instalando libnotify..."
-        sudo dnf install -y libnotify
-    fi
-    if ! rpm -q python3-dbus &> /dev/null; then
-        echo "📦 Instalando python3-dbus..."
-        sudo dnf install -y python3-dbus
-    fi
-elif command -v pacman &> /dev/null; then
-    # Arch Linux
-    if ! pacman -Q libnotify &> /dev/null; then
-        echo "📦 Instalando libnotify..."
-        sudo pacman -S --noconfirm libnotify
-    fi
-    if ! pacman -Q python-dbus &> /dev/null; then
-        echo "📦 Instalando python-dbus..."
-        sudo pacman -S --noconfirm python-dbus
-    fi
-else
-    echo "⚠️  Distribuição Linux não reconhecida. Certifique-se de instalar:"
-    echo "   • libnotify-bin (ou libnotify)"
-    echo "   • python3-dbus (ou python-dbus)"
-fi
-
-echo "✅ Dependências do sistema verificadas"
-echo ""
-
 # Perguntar se quer criar ambiente virtual
 read -p "📦 Criar ambiente virtual? (recomendado) [S/n]: " create_venv
 create_venv=${create_venv:-S}

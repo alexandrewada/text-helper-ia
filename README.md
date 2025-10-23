@@ -160,27 +160,11 @@ rm -f ~/.text_helper_ia.log*
 
 ## 📦 Dependências
 
-### Dependências Python
 - **openai**: Cliente para API OpenAI
 - **tkinter**: Interface gráfica (incluído no Python)
 - **pyperclip**: Manipulação da área de transferência
 - **plyer**: Notificações do sistema
 - **pynput**: Captura de eventos do teclado
-- **dbus-python**: Suporte para notificações do sistema (instalado automaticamente)
-
-### Dependências do Sistema (Linux)
-Para que as notificações funcionem corretamente, você precisa instalar:
-
-```bash
-# Ubuntu/Debian
-sudo apt install libnotify-bin python3-dbus
-
-# Fedora/CentOS
-sudo dnf install libnotify python3-dbus
-
-# Arch Linux
-sudo pacman -S libnotify python-dbus
-```
 
 ## 🤝 Contribuindo
 
