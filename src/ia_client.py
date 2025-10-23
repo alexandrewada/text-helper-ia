@@ -1,9 +1,8 @@
 """
 IA client for OpenAI integration
 """
-import asyncio
 from typing import Dict, Optional, Any
-from openai import OpenAI, AsyncOpenAI
+from openai import OpenAI
 from .config import Config
 from .logger import Logger
 
@@ -15,7 +14,6 @@ class AIClient:
         self.config = config
         self.logger = logger
         self.client = None
-        self.async_client = None
         self._setup_clients()
     
     def _setup_clients(self) -> None:
@@ -29,15 +27,14 @@ class AIClient:
         
         try:
             self.client = OpenAI(api_key=api_key, timeout=openai_config['timeout'])
-            self.async_client = AsyncOpenAI(api_key=api_key, timeout=openai_config['timeout'])
-            self.logger.info("OpenAI clients initialized successfully")
+            self.logger.info("OpenAI client initialized successfully")
         except Exception as e:
-            self.logger.error(f"Failed to initialize OpenAI clients: {e}")
+            self.logger.error(f"Failed to initialize OpenAI client: {e}")
             raise
     
     def is_configured(self) -> bool:
         """Check if client is properly configured"""
-        return self.client is not None and self.async_client is not None
+        return self.client is not None
     
     def get_system_prompts(self) -> Dict[str, str]:
         """Get system prompts for different operations"""
@@ -135,44 +132,3 @@ class AIClient:
                 self.logger.error(f"Error processing text with OpenAI: {e}")
                 raise Exception(f"Falha ao processar texto: {error_msg}")
     
-    async def process_text_async(self, text: str, operation_type: str) -> str:
-        """Process text using OpenAI API asynchronously"""
-        if not self.is_configured():
-            raise Exception("OpenAI client not configured. Please set up your API key.")
-        
-        if not text or not text.strip():
-            raise ValueError("Text cannot be empty")
-        
-        try:
-            openai_config = self.config.get_openai_config()
-            system_prompts = self.get_system_prompts()
-            user_prompts = self.get_user_prompts()
-            
-            if operation_type not in system_prompts:
-                raise ValueError(f"Unknown operation type: {operation_type}")
-            
-            self.logger.info(f"Processing text asynchronously with operation: {operation_type}")
-            
-            response = await self.async_client.chat.completions.create(
-                model=openai_config['model'],
-                messages=[
-                    {
-                        "role": "system",
-                        "content": system_prompts[operation_type]
-                    },
-                    {
-                        "role": "user",
-                        "content": user_prompts[operation_type].format(text=text)
-                    }
-                ],
-                max_tokens=openai_config['max_tokens'],
-                temperature=openai_config['temperature']
-            )
-            
-            result = response.choices[0].message.content.strip()
-            self.logger.info(f"Text processed successfully asynchronously: {operation_type}")
-            return result
-            
-        except Exception as e:
-            self.logger.error(f"Error processing text asynchronously with OpenAI: {e}")
-            raise Exception(f"Failed to process text: {str(e)}")

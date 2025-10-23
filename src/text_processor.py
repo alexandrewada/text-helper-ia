@@ -73,37 +73,3 @@ class TextProcessor:
         
         return cleaned.strip()
     
-    def get_text_stats(self, text: str) -> dict:
-        """Get statistics about the text"""
-        if not text:
-            return {
-                'characters': 0,
-                'words': 0,
-                'lines': 0,
-                'sentences': 0
-            }
-        
-        # Basic stats
-        characters = len(text)
-        words = len(text.split())
-        lines = len(text.splitlines())
-        
-        # Count sentences (rough estimate)
-        sentences = len([s for s in text.split('.') if s.strip()])
-        
-        return {
-            'characters': characters,
-            'words': words,
-            'lines': lines,
-            'sentences': sentences
-        }
-    
-    def cleanup_after_processing(self):
-        """Clean up after processing (simplified - no keyboard operations)"""
-        try:
-            self.logger.info("Cleaning up after text processing")
-            # Give system time to stabilize
-            time.sleep(0.1)
-            self.logger.info("Cleanup completed successfully")
-        except Exception as e:
-            self.logger.error(f"Error during cleanup: {e}")

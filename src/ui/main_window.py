@@ -339,16 +339,6 @@ class MainWindow:
         button.bind("<Enter>", on_enter)
         button.bind("<Leave>", on_leave)
     
-    def _add_hover_effect(self, button: tk.Button, original_color: str):
-        """Add hover effect to button (legacy method)"""
-        def on_enter(event):
-            button.config(bg=self._darken_color(original_color))
-        
-        def on_leave(event):
-            button.config(bg=original_color)
-        
-        button.bind("<Enter>", on_enter)
-        button.bind("<Leave>", on_leave)
     
     def show(self):
         """Show the main window"""
